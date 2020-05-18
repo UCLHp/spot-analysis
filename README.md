@@ -22,7 +22,7 @@ system software
 A script for ongoing qa that will analyse a predefined grid of spots and write
 the results to an access database
 
-### Components
+# Components
 
 README.md
 .gitignore
@@ -31,33 +31,48 @@ logos_module.py
 spot_commissioning.py
 spot_qa.py
 
-## Installation
+# Installation
 
 Do not install, please use latest version of the executable when available
 
-### Requirements
+# Requirements
 
 ***to be updated on first release!***
+
 tifffile
 numpy
 easygui
 
-### Tests
+# Risk Assessment
+
+|Risk|Solution|
+|If the incorrect files/energies are used for commissioning this may result
+in discrepancies between planned and delivered dose - this would be picked up
+during testing but will add significant time to trouble shooting|Commissioning
+results will always be checked visually during the full process to pick up
+errors of this kind|
+|If QA test pass incorrectly - this may lead to beam errors not being picked
+up|All QA tests should be independently checked|
+|If QA tests fail incorrectly - this may add time troubleshooting in set.|All
+QA tests should be independently checked|
+
+
+# Tests
 
 No tests currently included
 
-## Usage
+# Usage
 
 Acquire images and save into a directory along with the active script which
 provides the pixel resolution
 run the code and navigate to this directory.
 ***Choose a location to save the results***
 
-## Limitations / Known Bugs
+# Limitations / Known Bugs
 
 Currently only works for tifffiles
 
-## Contribute
+# Contribute
 
 Pull requests are welcome.  
 For major changes, please open a ticket first to discuss desired changes:  
@@ -65,13 +80,13 @@ For major changes, please open a ticket first to discuss desired changes:
 
 If making changes, please check all tests and add if required.
 
-## Licence
+# Licence
 
 All code within this package distributed under [GNU GPL-3.0 (or higher)](https://opensource.org/licenses/GPL-3.0).
 
 Full license text contained within the file LICENCE.
 
-###  (C) License for all programmes
+# (C) License for all programmes
 
 ```
 ###  Copyright (C) 2020:  Callum Stuart Main Gillies
