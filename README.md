@@ -45,16 +45,11 @@ easygui
 
 # Risk Assessment
 
-|Risk|Solution|
-|If the incorrect files/energies are used for commissioning this may result
-in discrepancies between planned and delivered dose - this would be picked up
-during testing but will add significant time to trouble shooting|Commissioning
-results will always be checked visually during the full process to pick up
-errors of this kind|
-|If QA test pass incorrectly - this may lead to beam errors not being picked
-up|All QA tests should be independently checked|
-|If QA tests fail incorrectly - this may add time troubleshooting in set.|All
-QA tests should be independently checked|
+| Risk | Solution |
+| ----------- | ----------- |
+| If the incorrect files/energies are used for commissioning this may result in discrepancies between planned and delivered dose - this would be picked up during testing but will add significant time to trouble shooting | Commissioning results will always be checked visually during the full process to pick up errors of this kind |
+| If QA test pass incorrectly - this may lead to beam errors not being picked up | All QA tests should be independently checked |
+| If QA tests fail incorrectly - this may add time troubleshooting in set | All QA tests should be independently checked |
 
 
 # Tests
