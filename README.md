@@ -61,7 +61,7 @@ Currently only works for tifffiles
 
 Pull requests are welcome.  
 For major changes, please open a ticket first to discuss desired changes:  
-[[repo-name]/issues](http://github.com/UCLHp/Spot_Analysis/issues)
+[Spot_Analysis/issues](http://github.com/UCLHp/Spot_Analysis/issues)
 
 If making changes, please check all tests and add if required.
 
