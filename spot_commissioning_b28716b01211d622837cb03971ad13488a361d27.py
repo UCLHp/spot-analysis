@@ -1,20 +1,43 @@
+import git
 import os
 import sys
-import git
-from logos_module import *
-import xlsxwriter
-import easygui as eg
+from urllib.request import urlopen, URLError
 
 cd = os.path.dirname(sys.argv[0])
+executable_name = os.path.basename(sys.argv[0])
+selfhash = executable_name.split('_')[2].split('.')[0]
 
-g = git.cmd.Git()
-blob = g.ls_remote("https://github.com/UCLHp/Spot_Analysis")
+selfhash = open("version.txt","r").readline()
+# selfhash = f.readline()
+print(selfhash)
 
-print(type(blob))
+def internet_on():
+    try:
+        response=urlopen('http://github.com/UCLHp/Spot_Analysis',timeout=20)
+        return True
+    except URLError as err: pass
+    return False
 
-print(os.path.dirname(sys.argv[0]))
-print(os.path.basename(sys.argv[0]))
+if internet_on():
+    g = git.cmd.Git()
+    githash = g.ls_remote("https://github.com/UCLHp/Spot_Analysis")[0:40]
+    if not githash == selfhash:
+        print('Please check latest version on GitHub')
+    else:
+        print("Version Confirmed")
+else:
+    print('No internet connection detected, cannot check latest release \n'
+          'Please check you are using the correct executable version \n')
+
+
+
+
+
+
+
 # print(sha)
+
+
 
 exit()
 dir = eg.diropenbox(title='Please select location of tiff files')
