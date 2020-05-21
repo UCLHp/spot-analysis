@@ -55,6 +55,7 @@ easygui
 # Tests
 
 No tests currently included
+Perhaps a test with a known data set - ensure consistant output.
 
 # Usage
 
