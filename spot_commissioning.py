@@ -2,60 +2,54 @@ import git
 import os
 import sys
 from urllib.request import urlopen, URLError
+import easygui as eg
+from logos_module import *
 
-cd = os.path.dirname(sys.argv[0])
-executable_name = os.path.basename(sys.argv[0])
-selfhash = executable_name.split('_')[2].split('.')[0]
-
-selfhash = open("version.txt","r").readline()
-# selfhash = f.readline()
-print(selfhash)
-
-def internet_on():
-    try:
-        response=urlopen('http://github.com/UCLHp/Spot_Analysis',timeout=20)
-        return True
-    except URLError as err: pass
-    return False
-
-if internet_on():
-    g = git.cmd.Git()
-    githash = g.ls_remote("https://github.com/UCLHp/Spot_Analysis")[0:40]
-    if not githash == selfhash:
-        print('Please check latest version on GitHub')
-    else:
-        print("Version Confirmed")
-else:
-    print('No internet connection detected, cannot check latest release \n'
-          'Please check you are using the correct executable version \n')
-
-
-
-
-
-
-
-# print(sha)
-
-
-
+# selfhash = open("version.txt","r").readline()
+#
+# def internet_on():
+#     try:
+#         response=urlopen('http://github.com/UCLHp/Spot_Analysis',timeout=20)
+#         return True
+#     except URLError as err: pass
+#     return False
+#
+# if internet_on():
+#     g = git.cmd.Git()
+#     githash = g.ls_remote("https://github.com/UCLHp/Spot_Analysis")[0:40]
+#     if not githash == selfhash:
+#         print('Please check latest version on GitHub')
+#     else:
+#         print("Version Confirmed")
+# else:
+#     print('No internet connection detected, cannot check latest release \n'
+#           'Please check you are using the correct executable version \n')
+version_check()
 exit()
+
 dir = eg.diropenbox(title='Please select location of tiff files')
 file_list = os.listdir(dir)
 
-if len(file_list) == 0:
-    print('Selected directory is empty')
+if 'activescript.txt' and 'output.txt' not in file_list:
+    print('activescript.txt or output.tx file not found')
+    print('Required to analyse images')
     print('Code Terminated')
     input('Press enter to close window')
     raise SystemExit
-
+else:
+    print('activescript.txt and output.txt files found')
 
 image_list = [f for f in os.listdir(dir) if f.endswith(('.tif', '.tiff',
                                                         '.jpg', '.bmp'))]
 
 
 
+(x,y)=ReadActiveScriptLOGOS(os.path.join(dir,'activescript.txt'))
 
+print(x,y)
+
+
+exit()
 
 
 

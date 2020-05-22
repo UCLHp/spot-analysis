@@ -2,6 +2,17 @@ import numpy as np
 from PIL import Image
 from scipy.optimize import curve_fit
 
+def ReadActiveScriptLOGOS(textfile):
+    file = open(textfile,'r')
+    FullData=[]
+    for line in file:
+        FullData.append((line.rstrip().lstrip()))
+        if line.startswith('CameraHRa'):
+            CameraHRatio = float(line[15:])
+        if line.startswith('CameraVRa'):
+            CameraVRatio = float(line[15:])
+    return CameraHRatio, CameraVRatio
+
 def image_to_array(file):
     image = Image.open(file)
     array = np.array(image)
@@ -154,18 +165,7 @@ def log_2_gaus_fit(Profile):
 #     YpoptLOGshiftR = FitAndDiffLOGShift(YLOGprofileR)
 #     return XProfile, XpoptLOGshiftL, XpoptLOGshiftR, YProfile, YpoptLOGshiftL, YpoptLOGshiftR
 #
-# def ReadActiveScriptLOGOS(textfile):
-#     file = open(textfile,'r')
-#     FullData=[]
-#     for line in file:
-#         FullData.append((line.rstrip().lstrip()))
-#     CameraHRatio_Index = [i for i, elem in enumerate(FullData) if 'CameraHRatio' in elem]
-#     CameraHRatio = FullData[CameraHRatio_Index[0]][15:]
-#     CameraHRatio = float(CameraHRatio)
-#     CameraVRatio_Index = [i for i, elem in enumerate(FullData) if 'CameraVRatio' in elem]
-#     CameraVRatio = FullData[CameraVRatio_Index[0]][15:]
-#     CameraVRatio = float(CameraVRatio)
-#     return CameraHRatio, CameraVRatio
+
 #
 # def FileNameToSpotPosition(Energyfilename, Params):
 #     original = cv2.imread(Energyfilename) # Creates a variable for the image file as an array
