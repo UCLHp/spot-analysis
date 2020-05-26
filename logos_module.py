@@ -13,9 +13,11 @@ def ReadActiveScriptLOGOS(textfile):
             CameraVRatio = float(line[15:])
     return CameraHRatio, CameraVRatio
 
-def image_to_array(file):
+def image_to_array(file, norm = True):
     image = Image.open(file)
     array = np.array(image)
+    if norm:
+        array = np.true_divide(array, np.amax(array))
     return array
 
 def find_centre(array, *, threshold=0.9,  norm=True):
@@ -27,14 +29,14 @@ def find_centre(array, *, threshold=0.9,  norm=True):
     CenterCol = int((max(above_thresh[1])+min(above_thresh[1]))/2)
     return [CenterRow, CenterCol]
 
-def central_xy_profiles(array, center):
+def central_xy_profiles(array, center, resolution=[1,1]):
     x = np.asarray(range(0, array.shape[1]))
     y = np.asarray(range(0, array.shape[0]))
-    centered_x = (x - center[1])
-    centered_y = (y - center[0])
+    centered_x = (x - center[1])/resolution[0]
+    centered_y = (y - center[0])/resolution[1]
 
-    XProfile=[centered_x, array[center[0]]]
-    YProfile=[centered_y, array[:, centre[1]]]
+    XProfile=np.asarray([centered_x, array[center[0]]])
+    YProfile=np.asarray([centered_y, array[:, center[1]]])
 
     return XProfile, YProfile
 
@@ -55,11 +57,20 @@ def log_2_gaus_shift_func(x, height, shift, sigma_1, sigma_2):
                         * np.exp(-(x-shift)**2 / (2*sigma_2*sigma_2))
                         )
                     )
+#     return np.log10((a * np.exp(-(((x-b)**2)/(2*c*c)))) + ((1-a) * np.exp(-(((x-b)**2)/(2*d*d)))))
+
 
 def log_2_gaus_fit(Profile):
     parameters, pcov = curve_fit(log_2_gaus_func, Profile[0], Profile[1],
-                           p0=[0.7, 100, 100],
+                           p0=[1, 100, 100],
                            bounds=([0.5,0.001,0.001],[1.,10000.,10000.])
+                           )
+    return parameters
+
+def log_2_gaus_shift_fit(Profile):
+    parameters, pcov = curve_fit(log_2_gaus_shift_func, Profile[0], Profile[1],
+                           p0=[1, 0, 15, 100],
+                           bounds=([0.5,-30,0.001,0.001],[1.,30,10000.,10000.])
                            )
     return parameters
 
