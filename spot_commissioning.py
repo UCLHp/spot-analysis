@@ -28,6 +28,8 @@ else:
 image_list = [f for f in os.listdir(dir) if f.endswith(('.tif', '.tiff',
                                                         '.jpg', '.bmp'))]
 
+image_list = sorted(image_list, key=lambda f: int(os.path.splitext(f)[0]))
+
 resolution = ReadActiveScriptLOGOS(os.path.join(dir,'activescript.txt'))
 
 workbook = xlsxwriter.Workbook('Commissioning_Profiles.xlsx')
@@ -85,6 +87,8 @@ for key in image_list:
     worksheet.write('G2', 'Y Model')
     worksheet.write_column('G3', y_model[1])
 
+    worksheet.set_column(1,6,14)
+
     chart1 = workbook.add_chart({'type': 'scatter'})
     chart1.add_series({
         'name':       'Data',
@@ -130,5 +134,4 @@ for key in image_list:
     chart2.set_size({'x_scale':1.55,'y_scale':1.6})
     worksheet.insert_chart('I25', chart2)
 
-workbook.worksheets_objs.sort(key=lambda x: x.name)
 workbook.close()
