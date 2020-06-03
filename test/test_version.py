@@ -30,7 +30,7 @@ def internet_on():
 # if this is not updated after a further commit to the master branch
 # a warning will be flagged to the user.
 
-selfhash = 'b28716b01211d622837cb03971ad13488a361d27'
+selfhash = '744921a011180d35c18d8bfdcae53c649eea4653'
 
 if internet_on():
     print('Internet connection established\n')

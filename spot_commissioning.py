@@ -32,7 +32,7 @@ image_list = sorted(image_list, key=lambda f: int(os.path.splitext(f)[0]))
 
 resolution = ReadActiveScriptLOGOS(os.path.join(dir,'activescript.txt'))
 
-workbook = xlsxwriter.Workbook('Commissioning_Profiles.xlsx')
+workbook = xlsxwriter.Workbook(os.path.join(dir,'Commissioning_Profiles.xlsx'))
 
 for key in image_list:
 
