@@ -1,6 +1,7 @@
 import numpy as np
 from PIL import Image
 from scipy.optimize import curve_fit
+import datetime
 
 class ActiveScript:
     '''
@@ -34,6 +35,8 @@ class Output:
             if line.startswith('Beamspots found'):
                 no_of_spots = int(line[18:])
         self.full_data = full_data
+        date = full_data[0][3]
+        self.datetime = datetime.datetime.strptime(date, '%H:%M:%S %m/%d/%Y')
         self.center = [float(full_data[0][5]),float(full_data[0][6])]
         self.no_of_spots = int(full_data[2][1])
         self.spots_xy = {}
