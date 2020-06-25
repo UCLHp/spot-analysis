@@ -6,23 +6,75 @@ from logos_module import *
 import easygui as eg
 # import pandas
 # import matplotlib.pyplot as plt
+import pypyodbc
+import test.test_version
 
 
+###############################################################################
+# SELECT DATA AND LOAD REFERENCE DIRECTORIES
+###############################################################################
+
+database_dir = ('\\\\krypton\\rtp-share$\\protons\\Work in Progress\\Christian'
+                '\\Database\\Proton\\Test FE - CB.accdb')
 energy_options = [x for x in list(range(70,245,5))+[244]] # Should link to database?
 
+dir = eg.diropenbox('Select Folders Containing Acquired Images '
+                    'For All Acquired Energies')
+
+if not dir:
+    eg.msgbox('Please re-run the code and select a folder containing the data'
+              ' to be analysed', title='Folder Selection Error')
+    raise SystemExit
+
+
+###############################################################################
+# Connect to Database and Select User Defined Variables
+###############################################################################
+
+# Connect to Database
+conn = pypyodbc.connect(
+        r'Driver={Microsoft Access Driver (*.mdb, *.accdb)};'
+        r'DBQ=' + database_dir + ';'
+        )
+cursor = conn.cursor()
+
+# Select acquired energies
 energies = eg.multchoicebox('Select Energies',
                             'Please select the energies that '
                             'have spot pattern image files', energy_options
                             )
 energies = sorted([int(i) for i in energies], reverse=True)
 
-dir = eg.diropenbox('Select Folders Containing Acquired Images '
-                    'For All Acquired Energies')
-
 if not len(energies)==len(os.listdir(dir)):
     eg.msgbox('Number of files in directory does not match number of Energies '
               'selected\nPlease re-run the program','File Count Error')
+    raise SystemExit
+print(f'Energies acquired: {energies}\n')
+# Select Operator
+cursor.execute('select * from [Operators]')
+operators = [row[2] for row in cursor.fetchall()]
+operator = eg.choicebox('Who performed the measurements?',
+                        'Operator',
+                        operators)
+if not operator:
+    eg.msgbox('Please re-run the code and select an Operator')
+    raise SystemExit
+print(f'Operator = {operator}\n')
 
+# Select Gantry
+cursor.execute('select * from [MachinesQuery]')
+machines = [row[0] for row in cursor.fetchall()]
+gantry = eg.choicebox('Which room were the measurements performed in?',
+                      'Gantry',
+                      machines)
+if not gantry:
+    eg.msgbox('Please re-run the code and select a room')
+    raise SystemExit
+print(f'Gantry = {gantry}\n')
+
+###############################################################################
+# Create Output object for each image in user defined directory
+###############################################################################
 
 for foldername in sorted(os.listdir(dir)):
     # os.rename(os.path.join(dir,folder),os.path.join(dir,str(Energies[j])))
@@ -40,12 +92,36 @@ for foldername in sorted(os.listdir(dir)):
     output = os.path.join(os.path.join(dir, foldername), 'output.txt')
     spot_properties = {x:Output(output) for x in energies}
 
-print(spot_properties[energies[0]].center)
-print(spot_properties[energies[0]].spots_xy)
-print(spot_properties[energies[0]].spots_width)
-print(spot_properties[energies[0]].spots_height)
-print(spot_properties[energies[0]].spots_diameter)
-print(spot_properties[energies[0]].spots_quality)
+###############################################################################
+# Print Results - will input to DB once table is created
+###############################################################################
+
+
+print(f'Operator was {operator}\n')
+print(f'Images acquired on {gantry}\n')
+for x in energies:
+    print(f"Results for {x}MeV Spots:\n")
+    print('Center:')
+    print(spot_properties[x].center)
+    print('Spot Positions:')
+    print(spot_properties[x].spots_xy)
+    print('Spot Width:')
+    print(spot_properties[x].spots_width)
+    print('Spot Height:')
+    print(spot_properties[x].spots_height)
+    print('Averaged Spot Diameter:')
+    print(spot_properties[x].spots_diameter)
+    print('Spot Circularity:')
+    print(spot_properties[x].spots_quality)
+    print()
+
+
+# print(spot_properties[energies[0]].center)
+# print(spot_properties[energies[0]].spots_xy)
+# print(spot_properties[energies[0]].spots_width)
+# print(spot_properties[energies[0]].spots_height)
+# print(spot_properties[energies[0]].spots_diameter)
+# print(spot_properties[energies[0]].spots_quality)
 
 
 
