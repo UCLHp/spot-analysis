@@ -53,17 +53,6 @@ class Output:
             self.spots_quality[i] = full_data[row][27]
 
 
-def ReadActiveScriptLOGOS(textfile):
-    file = open(textfile,'r')
-    FullData=[]
-    for line in file:
-        FullData.append((line.rstrip().lstrip()))
-        if line.startswith('CameraHRa'):
-            CameraHRatio = float(line[15:])
-        if line.startswith('CameraVRa'):
-            CameraVRatio = float(line[15:])
-    return CameraHRatio, CameraVRatio
-
 def image_to_array(file, norm = True):
     image = Image.open(file)
     array = np.array(image)

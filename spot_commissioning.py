@@ -30,8 +30,9 @@ image_list = [f for f in os.listdir(dir) if f.endswith(('.tif', '.tiff',
 
 image_list = sorted(image_list, key=lambda f: int(os.path.splitext(f)[0]))
 
-resolution = ReadActiveScriptLOGOS(os.path.join(dir,'activescript.txt'))
-
+# resolution = ReadActiveScriptLOGOS(os.path.join(dir,'activescript.txt'))
+active_script = ActiveScript(os.path.join(dir,'activescript.txt'))
+resolution = [active_script.CameraHRatio, active_script.CameraVRatio]
 workbook = xlsxwriter.Workbook(os.path.join(dir,'Commissioning_Profiles.xlsx'))
 
 for key in image_list:
