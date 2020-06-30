@@ -3,7 +3,6 @@ from logos_module import *
 import easygui as eg
 import pypyodbc
 import test.test_version
-import pandas as pd
 
 database_dir = ('\\\\krypton\\rtp-share$\\protons\\Work in Progress\\Christian'
                 '\\Database\\Proton\\Test FE - CB.accdb')
@@ -15,8 +14,8 @@ conn = pypyodbc.connect(
 cursor = conn.cursor()
 
 # Produce list of energies for multchoicebox (taken from the Database)
-df = pd.read_sql('SELECT [ID] FROM [ProtonEnergies]', conn)
-energy_options = df['id'].tolist()
+cursor.execute('select * from [ProtonEnergies]')
+energy_options = [row[0] for row in cursor.fetchall()]
 
 # Select acquired energies
 energies = eg.multchoicebox('Select Energies',
