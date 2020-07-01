@@ -34,6 +34,8 @@ class Output:
             full_data.append([x.lstrip().rstrip() for x in line.split(',')])
             if line.startswith('Beamspots found'):
                 no_of_spots = int(line[18:])
+        self.output_loc = textfile
+        self.image_loc = textfile.replace('output.txt', '00000001.bmp')
         self.full_data = full_data
         date = full_data[0][3]
         self.datetime = datetime.datetime.strptime(date, '%H:%M:%S %m/%d/%Y')
