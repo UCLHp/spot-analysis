@@ -91,7 +91,7 @@ sql = ('INSERT INTO [Spot Profile] ([ADate], [Operator], [Equipment], ' \
 spot_pos = [    'top-left', 'top-centre', 'top-right',
                 'middle-left', 'middle-centre', 'middle-right',
                 'bottom-left', 'bottom-centre', 'bottom-right'  ]
-                
+
 print(f'Operator was {operator}\n')
 print(f'Images acquired on {gantry}\n')
 for x in energies:
@@ -118,10 +118,10 @@ for x in energies:
                     90,
                     x,
                     spot_pos[y-1],
-                    float(spot_properties[x].spots_xy[y][0]),
-                    float(spot_properties[x].spots_xy[y][1]),
-                    float(spot_properties[x].spots_diameter[y]),
-                    float(spot_properties[x].spots_quality[y]),
+                    spot_properties[x].spots_xy[y][0],
+                    spot_properties[x].spots_xy[y][1],
+                    spot_properties[x].spots_diameter[y],
+                    spot_properties[x].spots_quality[y],
                     spot_properties[x].image_loc
                     ]
 
