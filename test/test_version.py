@@ -28,11 +28,10 @@ def internet_on():
 # if this is not updated after a further commit to the master branch
 # a warning will be flagged to the user.
 
-<<<<<<< HEAD
 def check_version():
     print('Checking latest version release...\n')
 
-    selfhash = '744921a011180d35c18d8bfdcae53c649eea4653'
+    selfhash = 'f65f04bc2de2dec4a811903a6552c3b4b97ca2fd'
 
     if internet_on():
         print('Internet connection established\n')
@@ -44,9 +43,6 @@ def check_version():
             input('Press enter to continue')
         else:
             print("Version Confirmed\n")
-=======
-selfhash = 'f65f04bc2de2dec4a811903a6552c3b4b97ca2fd'
->>>>>>> DatabaseConnection
 
     else:
         print('No internet connection detected')
