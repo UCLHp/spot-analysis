@@ -22,7 +22,7 @@ energies = eg.multchoicebox('Select Energies',
                             'Please select the energies that '
                             'have spot pattern image files', energy_options
                             )
-energies = sorted([int(i) for i in energies], reverse=True)
+energies = sorted([float(i) for i in energies], reverse=True)
 print(f'Energies acquired: {energies}\n')
 
 # Select Operator from list in Database
@@ -77,10 +77,21 @@ for foldername in sorted(os.listdir(dir)):
     output = os.path.join(os.path.join(dir, foldername), 'output.txt')
     spot_properties = {x: Output(output) for x in energies}
 
+    image_loc = os.path.join(os.path.join(dir, foldername), '00001.bmp')
+
+
 ###############################################################################
-# Print Results - will input to DB once table is created
+# Print Results and input to DB
 ###############################################################################
 
+sql = ('INSERT INTO [Spot Profile] ([ADate], [Operator], [Equipment], ' \
+    '[MachineName], [GantryAngle], [Energy], [Spot Position], [X-Position], '\
+    '[Y-Position], [Spot Size (Ave FWHM)], [Eccentricity], ' \
+    '[Image File Location]) \nVALUES(?,?,?,?,?,?,?,?,?,?,?,?)')
+spot_pos = [    'top-left', 'top-centre', 'top-right',
+                'middle-left', 'middle-centre', 'middle-right',
+                'bottom-left', 'bottom-centre', 'bottom-right'  ]
+                
 print(f'Operator was {operator}\n')
 print(f'Images acquired on {gantry}\n')
 for x in energies:
@@ -98,3 +109,23 @@ for x in energies:
     print('Spot Circularity:')
     print(spot_properties[x].spots_quality)
     print()
+
+    for y in range(1, (spot_properties[x].no_of_spots + 1)):
+        subset = [  spot_properties[x].datetime,
+                    operator,
+                    'Logos3000',
+                    gantry,
+                    90,
+                    x,
+                    spot_pos[y-1],
+                    float(spot_properties[x].spots_xy[y][0]),
+                    float(spot_properties[x].spots_xy[y][1]),
+                    float(spot_properties[x].spots_diameter[y]),
+                    float(spot_properties[x].spots_quality[y]),
+                    spot_properties[x].image_loc
+                    ]
+
+        cursor.execute(sql, subset)
+
+# Commit the changes to the database
+conn.commit()
