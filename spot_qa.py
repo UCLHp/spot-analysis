@@ -4,13 +4,12 @@ import easygui as eg
 import pypyodbc
 import test.test_version
 
-
 def main():
 
     test.test_version.check_version()
 
-    database_dir = ('\\\\krypton\\rtp-share$\\protons\\Work in Progress'
-                    '\\Christian\\Database\\Proton\\Test FE - CB.accdb')
+    database_dir = ('\\\\krypton\\rtp-share$\\protons\\Work in Progress\\Christian'
+                    '\\Database\\Proton\\Test FE - CB.accdb')
 
     conn = pypyodbc.connect(
             r'Driver={Microsoft Access Driver (*.mdb, *.accdb)};'
@@ -18,15 +17,16 @@ def main():
             )
     cursor = conn.cursor()
 
-    # Produce list of energies for multchoicebox - could be linked to Database?
-    energy_options = [x for x in list(range(70, 245, 5))+[244]]
+    # Produce list of energies for multchoicebox (taken from the Database)
+    cursor.execute('select * from [ProtonEnergies]')
+    energy_options = [row[0] for row in cursor.fetchall()]
 
     # Select acquired energies
     energies = eg.multchoicebox('Select Energies',
                                 'Please select the energies that '
                                 'have spot pattern image files', energy_options
                                 )
-    energies = sorted([int(i) for i in energies], reverse=True)
+    energies = sorted([float(i) for i in energies], reverse=True)
     print(f'Energies acquired: {energies}\n')
 
     # Select Operator from list in Database
@@ -57,14 +57,13 @@ def main():
 
     # Check to ensure number of energies defined matches the number of images
     if not len(energies) == len(os.listdir(dir)):
-        eg.msgbox('Number of files in directory does not match number of '
-                  'Energies selected\nPlease re-run the program',
-                  'File Count Error')
+        eg.msgbox('Number of files in directory does not match number of Energies '
+                  'selected\nPlease re-run the program', 'File Count Error')
         raise SystemExit
 
     if not dir:
-        eg.msgbox('Please re-run the code and select a folder containing the '
-                  'data to be analysed', title='Folder Selection Error')
+        eg.msgbox('Please re-run the code and select a folder containing the data'
+                  ' to be analysed', title='Folder Selection Error')
         raise SystemExit
 
     # Loop to populate output dictionary from LOGOS output files
@@ -82,9 +81,20 @@ def main():
         output = os.path.join(os.path.join(dir, foldername), 'output.txt')
         spot_properties = {x: Output(output) for x in energies}
 
-    ###########################################################################
-    # Print Results - will input to DB once table is created
-    ###########################################################################
+        image_loc = os.path.join(os.path.join(dir, foldername), '00001.bmp')
+
+
+    ###############################################################################
+    # Print Results and input to DB
+    ###############################################################################
+
+    sql = ('INSERT INTO [Spot Profile] ([ADate], [Operator], [Equipment], ' \
+        '[MachineName], [GantryAngle], [Energy], [Spot Position], [X-Position], '\
+        '[Y-Position], [Spot Size (Ave FWHM)], [Eccentricity], ' \
+        '[Image File Location]) \nVALUES(?,?,?,?,?,?,?,?,?,?,?,?)')
+    spot_pos = [    'top-left', 'top-centre', 'top-right',
+                    'middle-left', 'middle-centre', 'middle-right',
+                    'bottom-left', 'bottom-centre', 'bottom-right'  ]
 
     print(f'Operator was {operator}\n')
     print(f'Images acquired on {gantry}\n')
@@ -104,5 +114,24 @@ def main():
         print(spot_properties[x].spots_quality)
         print()
 
-if __name__=='__main__':
+        for y in range(1, (spot_properties[x].no_of_spots + 1)):
+            subset = [  spot_properties[x].datetime,
+                        operator,
+                        'Logos3000',
+                        gantry,
+                        90,
+                        x,
+                        spot_pos[y-1],
+                        spot_properties[x].spots_xy[y][0],
+                        spot_properties[x].spots_xy[y][1],
+                        spot_properties[x].spots_diameter[y],
+                        spot_properties[x].spots_quality[y],
+                        spot_properties[x].image_loc
+                        ]
+
+            cursor.execute(sql, subset)
+
+    # Commit the changes to the database
+    conn.commit()
+if __name__ == '__main__':
     main()
