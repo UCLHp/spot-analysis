@@ -57,6 +57,29 @@ def main():
         raise SystemExit
     print(f'Gantry = {gantry}\n')
 
+    # Select Gantry Angle
+    gantry_angles =[0, 90, 180, 270, 'Other']
+    gantry_angle = eg.choicebox('What gantry angle were the measurements ' \
+        'taken at?', 'Ganty Angle', gantry_angles)
+    if gantry_angle == 'Other':
+        gantry_angle = eg.integerbox(msg='Please enter gantry angle (Integer ' \
+            'between 0-360)', title='Gantry Angle', lowerbound=0, upperbound=360)
+    if not gantry_angle:
+        eg.msgbox('Please re-run the code and select the gantry angle used')
+        raise SystemExit
+    print(f'Gantry Angle = {gantry_angle}\n')
+
+    # Select equipment - Eventually this should be linked to an appropriate
+    # database querry not hardcoded.
+    equipment_list =['XRV-3000 Eagle 2D Beam Profiler [1]',
+        'XRV-4000 2D Beam Profiler [1]']
+    equipment = eg.choicebox(   'Which equipment was used?', 'Equipment',
+        equipment_list)
+    if not equipment:
+        eg.msgbox('Please re-run the code and select the equipment used')
+        raise SystemExit
+    print(f'Equipment = {equipment}\n')
+
     # User selects directory containing all acquired spot grid energies
     dir = eg.diropenbox('Select Folders Containing Acquired Images '
                         'For All Acquired Energies')
