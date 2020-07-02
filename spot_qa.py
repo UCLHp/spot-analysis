@@ -87,6 +87,11 @@ def main():
                       "required for the spot data")
             raise SystemExit
 
+        if not os.path.isfile(os.path.join(path, '00000001.bmp')):
+            eg.msgbox(f"Folder {foldername} Doesn't contain an image "
+                      "Code will terminate")
+            raise SystemExit
+
     # Create list of paths to output files
     output_files = [os.path.join(os.path.join(dir, dirnames), 'output.txt')
                     for dirnames in os.listdir(dir)]
@@ -153,7 +158,7 @@ def main():
                 raise SystemExit
 
     # Commit the changes to the database
-    conn.commit()
+    # conn.commit()
 
 
 if __name__ == '__main__':
