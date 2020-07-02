@@ -160,9 +160,9 @@ def main():
         for y in range(1, (spot_properties[x].no_of_spots + 1)):
             subset = [spot_properties[x].datetime,
                       operator,
-                      'Logos3000',
+                      equipment,
                       gantry,
-                      90,
+                      gantry_angle,
                       x,
                       spot_pos[y-1],
                       spot_properties[x].spots_xy[y][0],
@@ -181,7 +181,7 @@ def main():
                 raise SystemExit
 
     # Commit the changes to the database
-    # conn.commit()
+    conn.commit()
 
 
 if __name__ == '__main__':
