@@ -2,6 +2,8 @@ import numpy as np
 from PIL import Image
 from scipy.optimize import curve_fit
 import datetime
+from astropy.modeling import models, fitting
+
 
 class ActiveScript:
     '''
@@ -53,18 +55,28 @@ class Output:
             self.spots_quality[i] = full_data[row][27]
 
 
-def image_to_array(file, norm = True):
-    image = Image.open(file)
-    array = np.array(image)
+def image_to_array(my_file, norm = True):
+    '''
+    Takes a file path as an input and reads it using the PIL Image library and
+    then returns the data as a numpy array.
+    Will normalise the array to a maximum of 1 by default
+    '''
+    my_image = Image.open(my_file) # Image is a class within the PIL library
+    my_array = np.array(my_image)
     if norm:
-        array = np.true_divide(array, np.amax(array))
-    return array
+        my_array = np.true_divide(my_array, np.amax(my_array))
+    return my_array
 
-def find_centre(array, *, threshold=0.9,  norm=True):
+def find_centre(my_array, *, threshold=0.9,  norm=True):
+    '''
+    Takes a numpy array as input and uses the threshold to make a binary image
+    the upper/lowermost, left/rightmost pixels are used to find center pixel
+    based on a normalised array by default but can use absolute image values
+    '''
     if norm:
-        array = np.true_divide(array, np.amax(array))
-    array = np.true_divide(array, 1)
-    above_thresh = np.where(array > threshold)
+        my_array = np.true_divide(my_array, np.amax(my_array))
+    my_array = my_array.astype(np.float) #np.true_divide(my_array, 1)
+    above_thresh = np.where(my_array > threshold)
     CenterRow = int((max(above_thresh[0])+min(above_thresh[0]))/2)
     CenterCol = int((max(above_thresh[1])+min(above_thresh[1]))/2)
     return [CenterRow, CenterCol]
@@ -79,6 +91,45 @@ def central_xy_profiles(array, center, resolution=[1,1]):
     YProfile=np.asarray([centered_y, array[:, center[1]]])
 
     return XProfile, YProfile
+
+@models.custom_model
+def twoD_Gaussian(x, y, A=250, xo1=65, yo1=65, theta_1=0, sigma_x1=1, sigma_y1=10, B=5, sigma_x2=1, sigma_y2=1, offset=20):
+    '''
+    Equation to calculate two overlapping 2-Dimensional point spread functions
+    Both PSFs have the same centre and degree of rotation for simplicity
+    but have a major and minor sigma and different amplitudes
+    '''
+
+    xo1 = float(xo1) #xo1 and yo1 are the offsets for the central point of the gaussian
+    yo1 = float(yo1) #I have assumed it is the same for both the primary and scatter beam
+    a = (np.cos(theta_1)**2)/(2*sigma_x1**2) + (np.sin(theta_1)**2)/(2*sigma_y1**2) #a,b,c,d,e and f are taken from the generalised gaussian equation and use theta to rotate the curves in 2D. sigma represents the width of each curve
+    b = -(np.sin(2*theta_1))/(4*sigma_x1**2) + (np.sin(2*theta_1))/(4*sigma_y1**2)
+    c = (np.sin(theta_1)**2)/(2*sigma_x1**2) + (np.cos(theta_1)**2)/(2*sigma_y1**2)
+    d = (np.cos(theta_1)**2)/(2*sigma_x2**2) + (np.sin(theta_1)**2)/(2*sigma_y2**2)
+    e = -(np.sin(2*theta_1))/(4*sigma_x2**2) + (np.sin(2*theta_1))/(4*sigma_y2**2)
+    f = (np.sin(theta_1)**2)/(2*sigma_x2**2) + (np.cos(theta_1)**2)/(2*sigma_y2**2)
+    # g = offset + A*np.exp(-(a*((x-xo1)**2) + 2*b*(x-xo1)*(y-yo1) + c*((y-yo1)**2))) + A*B*np.exp(-(d*((x-xo1)**2) + 2*e*(x-xo1)*(y-yo1) + f*((y-yo1)**2)))
+    #g is the result of the fit as one long list
+    return offset + A*np.exp(-(a*((x-xo1)**2) + 2*b*(x-xo1)*(y-yo1) + c*((y-yo1)**2))) + A*B*np.exp(-(d*((x-xo1)**2) + 2*e*(x-xo1)*(y-yo1) + f*((y-yo1)**2)))
+
+@models.custom_model
+def PSF(x, y, A=250, xo1=65, yo1=65, theta_1=0, sigma_x1=1, sigma_y1=10, offset=20):
+    '''
+    Equation to calculate two overlapping 2-Dimensional point spread functions
+    Both PSFs have the same centre and degree of rotation for simplicity
+    but have a major and minor sigma and different amplitudes
+    '''
+
+    xo1 = float(xo1) #xo1 and yo1 are the offsets for the central point of the gaussian
+    yo1 = float(yo1) #I have assumed it is the same for both the primary and scatter beam
+    a = (np.cos(theta_1)**2)/(2*sigma_x1**2) + (np.sin(theta_1)**2)/(2*sigma_y1**2) #a,b,c,d,e and f are taken from the generalised gaussian equation and use theta to rotate the curves in 2D. sigma represents the width of each curve
+    b = -(np.sin(2*theta_1))/(4*sigma_x1**2) + (np.sin(2*theta_1))/(4*sigma_y1**2)
+    c = (np.sin(theta_1)**2)/(2*sigma_x1**2) + (np.cos(theta_1)**2)/(2*sigma_y1**2)
+    # g = offset + A*np.exp(-(a*((x-xo1)**2) + 2*b*(x-xo1)*(y-yo1) + c*((y-yo1)**2))) + A*B*np.exp(-(d*((x-xo1)**2) + 2*e*(x-xo1)*(y-yo1) + f*((y-yo1)**2)))
+    #g is the result of the fit as one long list
+    return offset + A*np.exp(-(a*((x-xo1)**2) + 2*b*(x-xo1)*(y-yo1) + c*((y-yo1)**2)))
+
+
 
 def log_2_gaus_func(x, height, sigma_1, sigma_2):
     return np.log10(    (height
