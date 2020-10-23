@@ -46,7 +46,7 @@ def produce_tps_profile_data():
     fit_p = fitting.LevMarLSQFitter()
 
     for key in image_list:
-        spot_array = lm.image_to_array(os.path.join(spot_dir,key), norm=False)
+        spot_array = lm.image_to_array(os.path.join(spot_dir,key))
         centre = lm.find_centre(spot_array)
         my_model1 = lm.PSF(xo1 = centre[0]/resolution[0], yo1 = centre[1]/resolution[1])
         my_model2 = lm.twoD_Gaussian(xo1 = centre[0]/resolution[0], yo1 = centre[1]/resolution[1])
