@@ -213,6 +213,7 @@ def produce_tps_profile_data():
         plt.imsave(temp_dir + f'\\{key}_diff_image2.png', p2(x,y) - spot_array)
 
         # Insert saved images into the excel file
+        # Scal will need to be adjusted with image size from LOGOS
         worksheet.insert_image('K35', temp_dir + f'\\{key}_diff_image1.png', {'x_scale':4, 'y_scale':4})
         worksheet.insert_image('S35', temp_dir + f'\\{key}_diff_image2.png', {'x_scale':4, 'y_scale':4})
 
