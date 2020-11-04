@@ -11,7 +11,7 @@ Currently a non-working version
 A script containing various functions that are used in both the spot qa and
 commissioning scripts
 
-## tps_profiles
+## tps_profiles.py
 
 Script to convert single spot images acquired using the LOGOS3000 or 4000 into
 numpy array - astropy is then used to fit a single and double Gaussian in 2D.
@@ -19,7 +19,7 @@ Plots along the central axis are saved in an excel workbook with linear and log
 scale and a difference image between the 2D fit and the raw image values is
 included  
 
-## spot_commissioning.py
+## spot_commissioning.py - SUPERCEDED
 
 A script that converts a folder of raw acquired images in tiff file format into
 an excel spreadsheet containing fitted plots to enter into a treatment planning
