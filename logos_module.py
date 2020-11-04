@@ -1,8 +1,7 @@
 import numpy as np
 from PIL import Image
-from scipy.optimize import curve_fit
 import datetime
-from astropy.modeling import models, fitting
+from astropy.modeling import models
 
 
 class ActiveScript:
@@ -55,11 +54,11 @@ class Output:
             self.spots_quality[i] = full_data[row][27]
 
 
-def image_to_array(my_file, norm = True):
+def image_to_array(my_file, norm = False):
     '''
     Takes a file path as an input and reads it using the PIL Image library and
     then returns the data as a numpy array.
-    Will normalise the array to a maximum of 1 by default
+    Will normalise the array to a maximum of 1 if norm set to True
     '''
     my_image = Image.open(my_file) # Image is a class within the PIL library
     my_array = np.array(my_image)
@@ -77,11 +76,15 @@ def find_centre(my_array, *, threshold=0.9,  norm=True):
         my_array = np.true_divide(my_array, np.amax(my_array))
     my_array = my_array.astype(np.float) #np.true_divide(my_array, 1)
     above_thresh = np.where(my_array > threshold)
-    CenterRow = int((max(above_thresh[0])+min(above_thresh[0]))/2)
-    CenterCol = int((max(above_thresh[1])+min(above_thresh[1]))/2)
-    return [CenterRow, CenterCol]
+    CentreRow = int((max(above_thresh[0])+min(above_thresh[0]))/2)
+    CentreCol = int((max(above_thresh[1])+min(above_thresh[1]))/2)
+    return [CentreRow, CentreCol]
 
 def central_xy_profiles(array, center, resolution=[1,1]):
+    '''
+    Returns 'x' 'y' profiles of an array at the index defined by 'centre'
+    these profiles are centred at 0 and distances are absolute
+    '''
     x = np.asarray(range(0, array.shape[1]))
     y = np.asarray(range(0, array.shape[0]))
     centered_x = (x - center[1])/resolution[0]
@@ -92,28 +95,32 @@ def central_xy_profiles(array, center, resolution=[1,1]):
 
     return XProfile, YProfile
 
+
+# No longer required as Double Gaussian taken from astropy library with offset
 @models.custom_model
-def twoD_Gaussian(x, y, A=250, xo1=65, yo1=65, theta_1=0, sigma_x1=1, sigma_y1=10, B=5, sigma_x2=1, sigma_y2=1, offset=20):
+def twoD_Gaussian(x, y, A=1, x_mean=0, y_mean=0, theta=0, sigma_x1=1, sigma_y1=1, B=0, sigma_x2=1, sigma_y2=1, offset=0):
     '''
     Equation to calculate two overlapping 2-Dimensional point spread functions
     Both PSFs have the same centre and degree of rotation for simplicity
     but have a major and minor sigma and different amplitudes
     '''
 
-    xo1 = float(xo1) #xo1 and yo1 are the offsets for the central point of the gaussian
-    yo1 = float(yo1) #I have assumed it is the same for both the primary and scatter beam
-    a = (np.cos(theta_1)**2)/(2*sigma_x1**2) + (np.sin(theta_1)**2)/(2*sigma_y1**2) #a,b,c,d,e and f are taken from the generalised gaussian equation and use theta to rotate the curves in 2D. sigma represents the width of each curve
-    b = -(np.sin(2*theta_1))/(4*sigma_x1**2) + (np.sin(2*theta_1))/(4*sigma_y1**2)
-    c = (np.sin(theta_1)**2)/(2*sigma_x1**2) + (np.cos(theta_1)**2)/(2*sigma_y1**2)
-    d = (np.cos(theta_1)**2)/(2*sigma_x2**2) + (np.sin(theta_1)**2)/(2*sigma_y2**2)
-    e = -(np.sin(2*theta_1))/(4*sigma_x2**2) + (np.sin(2*theta_1))/(4*sigma_y2**2)
-    f = (np.sin(theta_1)**2)/(2*sigma_x2**2) + (np.cos(theta_1)**2)/(2*sigma_y2**2)
-    # g = offset + A*np.exp(-(a*((x-xo1)**2) + 2*b*(x-xo1)*(y-yo1) + c*((y-yo1)**2))) + A*B*np.exp(-(d*((x-xo1)**2) + 2*e*(x-xo1)*(y-yo1) + f*((y-yo1)**2)))
+    x_mean = float(x_mean) #x_mean and y_mean are the offsets for the central point of the gaussian
+    y_mean = float(y_mean) #I have assumed it is the same for both the primary and scatter beam
+    a = (np.cos(theta)**2)/(2*sigma_x1**2) + (np.sin(theta)**2)/(2*sigma_y1**2) #a,b,c,d,e and f are taken from the generalised gaussian equation and use theta to rotate the curves in 2D. sigma represents the width of each curve
+    b = -(np.sin(2*theta))/(4*sigma_x1**2) + (np.sin(2*theta))/(4*sigma_y1**2)
+    c = (np.sin(theta)**2)/(2*sigma_x1**2) + (np.cos(theta)**2)/(2*sigma_y1**2)
+    d = (np.cos(theta)**2)/(2*sigma_x2**2) + (np.sin(theta)**2)/(2*sigma_y2**2)
+    e = -(np.sin(2*theta))/(4*sigma_x2**2) + (np.sin(2*theta))/(4*sigma_y2**2)
+    f = (np.sin(theta)**2)/(2*sigma_x2**2) + (np.cos(theta)**2)/(2*sigma_y2**2)
+    # g = offset + A*np.exp(-(a*((x-x_mean)**2) + 2*b*(x-x_mean)*(y-y_mean) + c*((y-y_mean)**2))) + A*B*np.exp(-(d*((x-x_mean)**2) + 2*e*(x-x_mean)*(y-y_mean) + f*((y-y_mean)**2)))
     #g is the result of the fit as one long list
-    return offset + A*np.exp(-(a*((x-xo1)**2) + 2*b*(x-xo1)*(y-yo1) + c*((y-yo1)**2))) + A*B*np.exp(-(d*((x-xo1)**2) + 2*e*(x-xo1)*(y-yo1) + f*((y-yo1)**2)))
+    return offset + A*np.exp(-(a*((x-x_mean)**2) + 2*b*(x-x_mean)*(y-y_mean) + c*((y-y_mean)**2))) + B*np.exp(-(d*((x-x_mean)**2) + 2*e*(x-x_mean)*(y-y_mean) + f*((y-y_mean)**2)))
 
+
+# No longer required as Double Gaussian taken from astropy library with offset
 @models.custom_model
-def PSF(x, y, A=250, xo1=65, yo1=65, theta_1=0, sigma_x1=1, sigma_y1=10, offset=20):
+def PSF(x, y, A=1, xo1=0, yo1=0, theta=0, sigma_x1=1, sigma_y1=1, offset=0):
     '''
     Equation to calculate two overlapping 2-Dimensional point spread functions
     Both PSFs have the same centre and degree of rotation for simplicity
@@ -122,61 +129,19 @@ def PSF(x, y, A=250, xo1=65, yo1=65, theta_1=0, sigma_x1=1, sigma_y1=10, offset=
 
     xo1 = float(xo1) #xo1 and yo1 are the offsets for the central point of the gaussian
     yo1 = float(yo1) #I have assumed it is the same for both the primary and scatter beam
-    a = (np.cos(theta_1)**2)/(2*sigma_x1**2) + (np.sin(theta_1)**2)/(2*sigma_y1**2) #a,b,c,d,e and f are taken from the generalised gaussian equation and use theta to rotate the curves in 2D. sigma represents the width of each curve
-    b = -(np.sin(2*theta_1))/(4*sigma_x1**2) + (np.sin(2*theta_1))/(4*sigma_y1**2)
-    c = (np.sin(theta_1)**2)/(2*sigma_x1**2) + (np.cos(theta_1)**2)/(2*sigma_y1**2)
+    a = (np.cos(theta)**2)/(2*sigma_x1**2) + (np.sin(theta)**2)/(2*sigma_y1**2) #a,b,c,d,e and f are taken from the generalised gaussian equation and use theta to rotate the curves in 2D. sigma represents the width of each curve
+    b = -(np.sin(2*theta))/(4*sigma_x1**2) + (np.sin(2*theta))/(4*sigma_y1**2)
+    c = (np.sin(theta)**2)/(2*sigma_x1**2) + (np.cos(theta)**2)/(2*sigma_y1**2)
     # g = offset + A*np.exp(-(a*((x-xo1)**2) + 2*b*(x-xo1)*(y-yo1) + c*((y-yo1)**2))) + A*B*np.exp(-(d*((x-xo1)**2) + 2*e*(x-xo1)*(y-yo1) + f*((y-yo1)**2)))
     #g is the result of the fit as one long list
     return offset + A*np.exp(-(a*((x-xo1)**2) + 2*b*(x-xo1)*(y-yo1) + c*((y-yo1)**2)))
 
 
-
-def log_2_gaus_func(x, height, sigma_1, sigma_2):
-    return np.log10(    (height
-                        * np.exp(-x**2 / (2*sigma_1*sigma_1))
-                        )
-                    +   ((1 - height)
-                        * np.exp(-x**2 / (2*sigma_2*sigma_2))
-                        )
-                    )
-
-def log_2_gaus_shift_func(x, height, shift, sigma_1, sigma_2):
-    return np.log10(    (height
-                        * np.exp(-(x-shift)**2 / (2*sigma_1*sigma_1))
-                        )
-                    +   ((1 - height)
-                        * np.exp(-(x-shift)**2 / (2*sigma_2*sigma_2))
-                        )
-                    )
-#     return np.log10((a * np.exp(-(((x-b)**2)/(2*c*c)))) + ((1-a) * np.exp(-(((x-b)**2)/(2*d*d)))))
-
-
-def log_2_gaus_fit(Profile):
-    parameters, pcov = curve_fit(log_2_gaus_func, Profile[0], Profile[1],
-                           p0=[1, 100, 100],
-                           bounds=([0.5,0.001,0.001],[1.,10000.,10000.])
-                           )
-    return parameters
-
-def log_2_gaus_shift_fit(Profile):
-    parameters, pcov = curve_fit(log_2_gaus_shift_func, Profile[0], Profile[1],
-                           p0=[1, 0, 15, 100],
-                           bounds=([0.5,-30,0.001,0.001],[1.,30,10000.,10000.])
-                           )
-    return parameters
-
-
-
-
-
-
-
+# Functions no longer used.
 #
-# import numpy as np
-# from scipy import ndimage
-# import math
-# import cv2
-# from csv import reader
+#
+#
+#
 # #######################
 # #Collection of functions used in other code for the analysis of spot profiles
 # #######################
@@ -189,14 +154,6 @@ def log_2_gaus_shift_fit(Profile):
 #     Data = FullFile[5:(Size+6)]
 #     return(FullFile,Data,Pitch)
 #
-# def func(x, a, b, c): # Defines the equation to calculate the double gaussian, a, b, c, d, e and f are the parameters of the fit.
-#     return (a * np.exp(-((x**2)/(2*b*b)))) + ((1-a) * np.exp(-((x**2)/(2*c*c))))
-#
-#
-# def FitAndDiff(Profile): # This function optimises the parameters in the above function to best fit the X,Y DataFrame supplied (Profile)
-#
-#     popt, pcov = curve_fit(func, Profile[0], Profile[1], p0=[0.7, 100, 100], bounds=([0.5,0.001,0.001],[1.,10000.,10000.]))     # "AW" added constraints to the parameters but all I really wanted was for them to be positive
-#     return popt #Outputs popt which is an array of the parameters.
 #
 # def rotateImage(array, angle, pivot): #Function to rotate an array a given angle around a defined axis
 #     padX = [array.shape[1] - pivot[0], pivot[0]] #Creates 0's on the X axis such that the pivot is at the centre of the array
@@ -206,68 +163,6 @@ def log_2_gaus_shift_fit(Profile):
 #     return arrayR[padY[0] : -padY[1], padX[0] : -padX[1]] #Removes the previously added padding and returns the result
 #     #further info here: https://stackoverflow.com/questions/25458442/rotate-a-2d-image-around-specified-origin-in-python
 #
-# def funcLOG(x,a,b,c):
-#     return np.log10((a * np.exp(-((x**2)/(2*b*b)))) + ((1-a) * np.exp(-((x**2)/(2*c*c)))))
-#
-# def FitAndDiffLOG(Profile): # This function optimises the parameters in the above function to best fit the X,Y DataFrame supplied (Profile)
-#     popt, pcov = curve_fit(funcLOG, Profile[0], Profile[1], p0=[0.7, 15, 100], bounds=([0.5,0.001,0.001],[1.,1000000.,1000000.]))     # "AW" added constraints to the parameters but all I really wanted was for them to be positive
-#     return popt #Outputs popt which is an array of the parameters.
-#
-# def funcLOGShift(x,a,b,c,d):
-#     return np.log10((a * np.exp(-(((x-b)**2)/(2*c*c)))) + ((1-a) * np.exp(-(((x-b)**2)/(2*d*d)))))
-#
-# def FitAndDiffLOGShift(Profile): # This function optimises the parameters in the above function to best fit the X,Y DataFrame supplied (Profile)
-#     popt, pcov = curve_fit(funcLOGShift, Profile[0], Profile[1], p0=[0.7, 0, 15,100], bounds=([0.5,-30,0.001,0.001],[1.,30,1000000.,1000000.]))     # "AW" added constraints to the parameters but all I really wanted was for them to be positive
-#     return popt #Outputs popt which is an array of the parameters.
-#
-# def SpotArrayToProfiles(SpotArray,Hor,Vert):
-#     NData0 = np.true_divide(SpotArray,np.amax(SpotArray))
-#     itemindex = np.where(NData0>0.90) # Returns an array of the position of all cells greater than 90% - 90 was picked from looking at example data
-#     CenterRow = int((max(itemindex[0])+min(itemindex[0]))/2) #Finds the row number of the Center of mass of the 90% isodose line
-#     CenterCol = int((max(itemindex[1])+min(itemindex[1]))/2) #Finds the column number of the Center of mass of the 90% isodose line
-#     SpotCenter = [CenterRow, CenterCol]
-#     X = np.asarray(range(0,SpotArray.shape[1])) #Creates list of numbers from 0 to the number of pixels per row
-#     Y = np.asarray(range(0,SpotArray.shape[0])) #Creates list of numbers from 0 to the number of pixels per column
-#     CenteredX=(X-CenterCol)/Hor #Creates an X axis that has the Center of the 90% isodose at 0 in pixels
-#     CenteredY=(Y-CenterRow)/Vert #Creates a Y axis that has the Center of the 90% isodose at 0 in pixels
-#
-#     XProfile=[CenteredX,NData0[CenterRow]]
-#     YProfile=[CenteredY,NData0[:,CenterCol]]
-#
-#     return XProfile, YProfile, SpotCenter
-#
-# def SpotArrayToEquation(SpotArray,Hor,Vert):
-#     NData0 = np.true_divide(SpotArray,np.amax(SpotArray))
-#     itemindex = np.where(NData0>0.90) # Returns an array of the position of all cells greater than 90% - 90 was picked from looking at example data
-#     CenterRow = int((max(itemindex[0])+min(itemindex[0]))/2) #Finds the row number of the Center of mass of the 90% isodose line
-#     CenterCol = int((max(itemindex[1])+min(itemindex[1]))/2) #Finds the column number of the Center of mass of the 90% isodose line
-#     X = np.asarray(range(0,SpotArray.shape[1])) #Creates list of numbers from 0 to the number of pixels per row
-#     Y = np.asarray(range(0,SpotArray.shape[0])) #Creates list of numbers from 0 to the number of pixels per column
-#     CenteredX=(X-CenterCol)/Hor #Creates an X axis that has the Center of the 90% isodose at 0 in pixels
-#     CenteredY=(Y-CenterRow)/Vert #Creates a Y axis that has the Center of the 90% isodose at 0 in pixels
-#
-#     XProfile=[CenteredX,NData0[CenterRow]]
-#     YProfile=[CenteredY,NData0[:,CenterCol]]
-#     LOGXprofile=[CenteredX,np.log10(NData0[CenterRow])]
-#     LOGYprofile=[CenteredY,np.log10(NData0[:,CenterCol])]
-#
-#     XProfileL=[CenteredX[0:CenterCol],NData0[CenterRow][0:CenterCol]]
-#     YProfileL=[CenteredY[0:CenterRow],YProfile[1][0:CenterRow]]
-#     XLOGprofileL=[CenteredX[0:CenterCol],np.log10(NData0[CenterRow][0:CenterCol])]
-#     YLOGprofileL=[CenteredY[0:CenterRow],np.log10(YProfile[1][0:CenterRow])]
-#
-#     XProfileR=[CenteredX[CenterCol:],NData0[CenterRow][CenterCol:]]
-#     YProfileR=[CenteredY[CenterRow:],YProfile[1][CenterRow:]]
-#     XLOGprofileR=[CenteredX[CenterCol:],np.log10(NData0[CenterRow][CenterCol:])]
-#     YLOGprofileR=[CenteredY[CenterRow:],np.log10(YProfile[1][CenterRow:])]
-#
-#     XpoptLOGshiftL = FitAndDiffLOGShift(XLOGprofileL)
-#     XpoptLOGshiftR = FitAndDiffLOGShift(XLOGprofileR)
-#     YpoptLOGshiftL = FitAndDiffLOGShift(YLOGprofileL)
-#     YpoptLOGshiftR = FitAndDiffLOGShift(YLOGprofileR)
-#     return XProfile, XpoptLOGshiftL, XpoptLOGshiftR, YProfile, YpoptLOGshiftL, YpoptLOGshiftR
-#
-
 #
 # def FileNameToSpotPosition(Energyfilename, Params):
 #     original = cv2.imread(Energyfilename) # Creates a variable for the image file as an array
