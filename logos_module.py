@@ -160,7 +160,19 @@ def PSF(x, y, A=1, xo1=0, yo1=0, theta=0, sigma_x1=1, sigma_y1=1, offset=0):
     # g is the result of the fit as one long list
     return offset + A*np.exp(-(a*((x-xo1)**2) + 2*b*(x-xo1)*(y-yo1) + c*((y-yo1)**2)))
 
+
 def uniformity_ROI(uniformity_array, threshold=0.5):
+    '''Returns central region of rectangular field and image for reference
+
+            Parameters:
+                uniformity_array(numpy): greyscale uniformity image as np array
+                threshold(float): where to threshold the image to delect ROI
+
+            Returns:
+                ROI_display(matplotlib): image to confirm ROI on original image
+                uniformity(float): central region uniformity metric
+                                   calculated by ~ 100*(max-min)/(max+min)
+    '''
     area_above_thresh = np.where(uniformity_array > threshold)
 
     width = max(area_above_thresh[1]) - min(area_above_thresh[1])
