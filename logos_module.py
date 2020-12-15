@@ -11,8 +11,8 @@ class ActiveScript:
     capturing images
     '''
     def __init__(self, textfile):
-        file = open(textfile,'r')
-        fulldata=[]
+        file = open(textfile, 'r')
+        fulldata = []
         for line in file:
             fulldata.append((line.rstrip().lstrip()))
             if line.startswith('CameraHRa'):
@@ -21,6 +21,7 @@ class ActiveScript:
                 CameraVRatio = float(line[15:])
         self.CameraHRatio = CameraHRatio
         self.CameraVRatio = CameraVRatio
+
 
 class Output:
     '''
@@ -54,17 +55,39 @@ class Output:
             self.spots_quality[i] = full_data[row][27]
 
 
-def image_to_array(my_file, norm = False):
+def image_to_array(my_file, norm=False):
     '''
     Takes a file path as an input and reads it using the PIL Image library and
     then returns the data as a numpy array.
     Will normalise the array to a maximum of 1 if norm set to True
     '''
-    my_image = Image.open(my_file) # Image is a class within the PIL library
+    my_image = Image.open(my_file)  # Image is a class within the PIL library
     my_array = np.array(my_image)
     if norm:
         my_array = np.true_divide(my_array, np.amax(my_array))
     return my_array
+
+
+def csv_to_array(filename):
+    """Return image numpy array of image plus pitch (pixel size)
+    """
+
+    spotdata = open(filename).readlines()
+
+    # Image pitch (pixel width) is in first line
+    pitch = float(spotdata[0].split("Pitch:,")[1].split(",")[0].strip())
+
+     # 3rd line contains image dimension - ALWAYS??      ##TODO: CHECK CORRECT FOR NON-SQUARE IMAGES
+    nrows = int( spotdata[2].split(",")[1].strip() )    # or is this x dim => no. columns?
+    ncols = int( spotdata[2].split(",")[2].strip() )    #            y dim => no. rows?
+
+    spotimage = np.zeros( [nrows,ncols] )   ## format np([rows,cols])
+
+    for row in range(3, nrows+3): # Image data starts on fourth row
+        spotimage[row-3] = np.array( spotdata[row].split(",") ).astype(float)
+
+    return spotimage  # , pitch
+
 
 def find_centre(my_array, *, threshold=0.9,  norm=True):
     '''
@@ -74,13 +97,14 @@ def find_centre(my_array, *, threshold=0.9,  norm=True):
     '''
     if norm:
         my_array = np.true_divide(my_array, np.amax(my_array))
-    my_array = my_array.astype(np.float) #np.true_divide(my_array, 1)
+    my_array = my_array.astype(np.float)  # np.true_divide(my_array, 1)
     above_thresh = np.where(my_array > threshold)
     CentreRow = int((max(above_thresh[0])+min(above_thresh[0]))/2)
     CentreCol = int((max(above_thresh[1])+min(above_thresh[1]))/2)
     return [CentreRow, CentreCol]
 
-def central_xy_profiles(array, center, resolution=[1,1]):
+
+def central_xy_profiles(array, center, resolution=[1, 1]):
     '''
     Returns 'x' 'y' profiles of an array at the index defined by 'centre'
     these profiles are centred at 0 and distances are absolute
@@ -90,8 +114,8 @@ def central_xy_profiles(array, center, resolution=[1,1]):
     centered_x = (x - center[1])/resolution[0]
     centered_y = (y - center[0])/resolution[1]
 
-    XProfile=np.asarray([centered_x, array[center[0]]])
-    YProfile=np.asarray([centered_y, array[:, center[1]]])
+    XProfile = np.asarray([centered_x, array[center[0]]])
+    YProfile = np.asarray([centered_y, array[:, center[1]]])
 
     return XProfile, YProfile
 
@@ -133,9 +157,28 @@ def PSF(x, y, A=1, xo1=0, yo1=0, theta=0, sigma_x1=1, sigma_y1=1, offset=0):
     b = -(np.sin(2*theta))/(4*sigma_x1**2) + (np.sin(2*theta))/(4*sigma_y1**2)
     c = (np.sin(theta)**2)/(2*sigma_x1**2) + (np.cos(theta)**2)/(2*sigma_y1**2)
     # g = offset + A*np.exp(-(a*((x-xo1)**2) + 2*b*(x-xo1)*(y-yo1) + c*((y-yo1)**2))) + A*B*np.exp(-(d*((x-xo1)**2) + 2*e*(x-xo1)*(y-yo1) + f*((y-yo1)**2)))
-    #g is the result of the fit as one long list
+    # g is the result of the fit as one long list
     return offset + A*np.exp(-(a*((x-xo1)**2) + 2*b*(x-xo1)*(y-yo1) + c*((y-yo1)**2)))
 
+def uniformity_ROI(uniformity_array, threshold=0.5):
+    area_above_thresh = np.where(uniformity_array > threshold)
+
+    width = max(area_above_thresh[1]) - min(area_above_thresh[1])
+    height = max(area_above_thresh[0]) - min(area_above_thresh[0])
+
+    left80 = int(min(area_above_thresh[0]) + 0.1 * width)
+    right80 = int(min(area_above_thresh[0]) + 0.9 * width)
+    top80 = int(min(area_above_thresh[1]) + 0.1 * height)
+    bottom80 = int(min(area_above_thresh[1]) + 0.9 * height)
+
+    ROI_display = np.copy(uniformity_array)
+    ROI_display[top80, left80:right80] = 0
+    ROI_display[bottom80, left80:right80] = 0
+    ROI_display[top80:bottom80, left80] = 0
+    ROI_display[top80:bottom80, right80] = 0
+
+    ROI = uniformity_array[top80:bottom80, left80:right80]
+    return ROI, ROI_display
 
 # Functions no longer used.
 #

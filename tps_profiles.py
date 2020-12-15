@@ -94,7 +94,7 @@ def produce_tps_profile_data():
     resolution = [active_script.CameraHRatio, active_script.CameraVRatio]
 
     # Only include the image files in the list, not the txt or script files
-    img_types = ('.tif', '.tiff', 'jpg', '.bmp')
+    img_types = ('.tif', '.tiff', 'jpg', '.bmp', '.csv')
     image_list = [f for f in os.listdir(spot_dir) if f.endswith(img_types)]
     # Sort images into order of ascending energy
 
@@ -113,7 +113,7 @@ def produce_tps_profile_data():
 
     # Unable to paste plt.imshow images directly into an excel file. Temporary
     # dir created to save images, these are imported then temp_dir is deleted
-    temp_dir = save_dir + '\\ImagesForDeletion'
+    temp_dir = os.path.join(save_dir, 'ImagesForDeletion')
     os.mkdir(temp_dir)
 
     # astropy used to created combined models. PSF is a single 2D gaussian
@@ -121,8 +121,8 @@ def produce_tps_profile_data():
     #G2D is a double two D gaussian both with the addition of the background
     G2D_model = models.Gaussian2D() + models.Gaussian2D() + addition()
 
-    # Create empty excel file to write results to
-    workbook = xlsxwriter.Workbook(os.path.join(save_dir, 'TPS_Profiles.xlsx'))
+    # Create empty excel file to write results to, with ability to write errors as 0
+    workbook = xlsxwriter.Workbook(os.path.join(save_dir, 'TPS_Profiles.xlsx'), {'nan_inf_to_errors': True})
     # Summary worksheet to contain parameters for all energies
     summary = workbook.add_worksheet('Summary')
     summary.write('B3', 'Image')
@@ -134,15 +134,17 @@ def produce_tps_profile_data():
 
     for key in image_list:
         print(f"Fitting profiles for {key.split('.')[0]}")
-        spot_array = lm.image_to_array(os.path.join(spot_dir,key), norm=True)
+        #spot_array = lm.image_to_array(os.path.join(spot_dir,key))#, norm=True)
+        spot_array = lm.csv_to_array(os.path.join(spot_dir,key))#, norm=True)        
         # find_centre used to give fit a decent starting point
         centre = lm.find_centre(spot_array, norm = True)
 
         # PSF is a single 2D gaussian with offset using a compund model
         # G2D is a double 2D gaussian with offset using a compund model
         # https://docs.astropy.org/en/stable/modeling/compound-models.html
+        G2D_model = lm.twoD_Gaussian(x_mean = centre[0]/resolution[0], y_mean = centre[1]/resolution[1])
         PSF_model = models.Gaussian2D(x_mean = centre[0]/resolution[0], y_mean = centre[1]/resolution[1]) + addition()
-        G2D_model = models.Gaussian2D(x_mean = centre[0]/resolution[0], y_mean = centre[1]/resolution[1]) + models.Gaussian2D(x_mean = centre[0]/resolution[0], y_mean = centre[1]/resolution[1]) + addition()
+        # G2D_model = models.Gaussian2D(x_mean = centre[0]/resolution[0], y_mean = centre[1]/resolution[1]) + models.Gaussian2D(x_mean = centre[0]/resolution[0], y_mean = centre[1]/resolution[1]) + addition()
 
         # Meshgrid produces a coordinate pair for each pixel value
         y, x = np.mgrid[:len(spot_array[0]), :len(spot_array)]

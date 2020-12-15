@@ -2,10 +2,9 @@ import os
 from logos_module import *
 import easygui as eg
 import pypyodbc
-import test.test_version
+# import test.test_version
 
-database_dir = ('\\\\krypton\\rtp-share$\\protons\\Work in Progress\\Christian'
-                '\\Database\\Proton\\Test FE - CB.accdb')
+database_dir = 'C:\\Users\\csmgi\\Desktop\\Work\\Coding\\CatPhan\\AssetsDatabaseInProgress.accdb'
 
 conn = pypyodbc.connect(
         r'Driver={Microsoft Access Driver (*.mdb, *.accdb)};'
