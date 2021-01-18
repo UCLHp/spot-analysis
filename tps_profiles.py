@@ -61,7 +61,7 @@ def write_chart(workbook, worksheet, x, key, title, datacol1, datacol2,
     worksheet.insert_chart(pastecell, chart1)
 
 
-def produce_tps_profile_data():
+def produce_tps_profile_data(tps_dir):
     '''
     Function to produce spot profiles for entry into our TPS
     For a directory of acquired single spot tif files using the LOGOS 3/4000
@@ -72,9 +72,10 @@ def produce_tps_profile_data():
     # DEFAULTDIR = ('C:/Users/csmgi/Desktop/Work/Coding/Test-Data/'
     #              'spot-analysis/VarietyOfSpots/')
 
-    spot_dir = eg.diropenbox('Select directory containing spot images' #,
-                             #default = DEFAULTDIR
-                             )
+    # spot_dir = eg.diropenbox('Select directory containing spot images' #,
+    #                          #default = DEFAULTDIR
+                             # )
+    spot_dir = tps_dir
 
     file_list = os.listdir(spot_dir)
 
@@ -94,7 +95,7 @@ def produce_tps_profile_data():
     resolution = [active_script.CameraHRatio, active_script.CameraVRatio]
 
     # Only include the image files in the list, not the txt or script files
-    img_types = ('.tif', '.tiff', 'jpg', '.bmp', '.csv')
+    img_types = ('.tif', '.tiff', 'jpg', '.bmp')
     image_list = [f for f in os.listdir(spot_dir) if f.endswith(img_types)]
     # Sort images into order of ascending energy
 
@@ -107,10 +108,10 @@ def produce_tps_profile_data():
     # https://docs.astropy.org/en/stable/api/astropy.modeling.fitting.SLSQPLSQFitter.html#astropy.modeling.fitting.SLSQPLSQFitter
     fit_p = fitting.SLSQPLSQFitter()
 
-    save_dir = eg.diropenbox(title='Please Select Save Location')
-    if not save_dir:
-        raise SystemExit
-
+    # save_dir = eg.diropenbox(title='Please Select Save Location')
+    # if not save_dir:
+    #     raise SystemExit
+    save_dir = spot_dir
     # Unable to paste plt.imshow images directly into an excel file. Temporary
     # dir created to save images, these are imported then temp_dir is deleted
     temp_dir = os.path.join(save_dir, 'ImagesForDeletion')
@@ -119,25 +120,27 @@ def produce_tps_profile_data():
     # astropy used to created combined models. PSF is a single 2D gaussian
     PSF_model = models.Gaussian2D() + addition()
     #G2D is a double two D gaussian both with the addition of the background
-    G2D_model = models.Gaussian2D() + models.Gaussian2D() + addition()
+    G2D_model = lm.twoD_Gaussian()
 
     # Create empty excel file to write results to, with ability to write errors as 0
-    workbook = xlsxwriter.Workbook(os.path.join(save_dir, 'TPS_Profiles.xlsx'), {'nan_inf_to_errors': True})
+    workbook = xlsxwriter.Workbook(os.path.join(save_dir, 'TPS_Profiles_90.xlsx'), {'nan_inf_to_errors': True})
     # Summary worksheet to contain parameters for all energies
     summary = workbook.add_worksheet('Summary')
     summary.write('B3', 'Image')
     summary.merge_range('C2:I2', 'Single Gaussian Fit')
     summary.merge_range('J2:V2', 'Double Gaussian Fit')
-    summary.write_row('C3', list(PSF_model.param_names) + list(G2D_model.param_names))
+    summary.write_row('C3', list(PSF_model.param_names) + [] + list(G2D_model.param_names))
     # counter used to add line per image analysed
     counter = 0
 
     for key in image_list:
         print(f"Fitting profiles for {key.split('.')[0]}")
-        #spot_array = lm.image_to_array(os.path.join(spot_dir,key))#, norm=True)
-        spot_array = lm.csv_to_array(os.path.join(spot_dir,key))#, norm=True)        
+        spot_array = lm.image_to_array(os.path.join(spot_dir,key), norm=True)
+        # spot_array = lm.csv_to_array(os.path.join(spot_dir,key))#, norm=True)
+
+        spot_array = lm.crop_center(spot_array, 200, 200)
         # find_centre used to give fit a decent starting point
-        centre = lm.find_centre(spot_array, norm = True)
+        centre = lm.find_centre(spot_array, norm=True)
 
         # PSF is a single 2D gaussian with offset using a compund model
         # G2D is a double 2D gaussian with offset using a compund model
@@ -147,7 +150,9 @@ def produce_tps_profile_data():
         # G2D_model = models.Gaussian2D(x_mean = centre[0]/resolution[0], y_mean = centre[1]/resolution[1]) + models.Gaussian2D(x_mean = centre[0]/resolution[0], y_mean = centre[1]/resolution[1]) + addition()
 
         # Meshgrid produces a coordinate pair for each pixel value
-        y, x = np.mgrid[:len(spot_array[0]), :len(spot_array)]
+        x, y = np.meshgrid(np.arange(0,len(spot_array[0])), np.arange(0,len(spot_array)))
+        # x, y = np.mgrid[:len(spot_array[0]), :len(spot_array)]
+
         # Dividing by resolution gives absolute distance rather than pixels
         x = np.true_divide(x, resolution[0])
         y = np.true_divide(y, resolution[1])
@@ -228,5 +233,5 @@ def produce_tps_profile_data():
         os.remove(temp_dir+'\\'+file)
     os.rmdir(temp_dir)
 
-if __name__ == '__main__':
-    produce_tps_profile_data()
+# if __name__ == '__main__':
+#     produce_tps_profile_data()

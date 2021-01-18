@@ -120,6 +120,12 @@ def central_xy_profiles(array, center, resolution=[1, 1]):
     return XProfile, YProfile
 
 
+def crop_center(img, cropx, cropy):
+    y, x = img.shape
+    startx = x//2-(cropx//2)
+    starty = y//2-(cropy//2)
+    return img[starty:starty+cropy, startx:startx+cropx]
+
 # No longer required as Double Gaussian taken from astropy library with offset
 @models.custom_model
 def twoD_Gaussian(x, y, A=1, x_mean=0, y_mean=0, theta=0, sigma_x1=1, sigma_y1=1, B=0, sigma_x2=1, sigma_y2=1, offset=0):
