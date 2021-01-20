@@ -63,6 +63,7 @@ def image_to_array(my_file, norm=False):
     '''
     my_image = Image.open(my_file)  # Image is a class within the PIL library
     my_array = np.array(my_image)
+    my_array = np.rot90(my_array, 1) # Images are 90deg off from expected
     if norm:
         my_array = np.true_divide(my_array, np.amax(my_array))
     return my_array
