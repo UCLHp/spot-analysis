@@ -5,7 +5,6 @@ import logos_module as lm
 import matplotlib.pyplot as plt
 import numpy as np
 from astropy.modeling import models, fitting
-from PIL import Image
 
 '''
 This Script creates a report containing single and double 2D Gaussian fits to
@@ -61,7 +60,7 @@ def write_chart(workbook, worksheet, x, key, title, datacol1, datacol2,
     worksheet.insert_chart(pastecell, chart1)
 
 
-def produce_tps_profile_data(tps_dir):
+def produce_tps_profile_data():
     '''
     Function to produce spot profiles for entry into our TPS
     For a directory of acquired single spot tif files using the LOGOS 3/4000
@@ -72,10 +71,9 @@ def produce_tps_profile_data(tps_dir):
     # DEFAULTDIR = ('C:/Users/csmgi/Desktop/Work/Coding/Test-Data/'
     #              'spot-analysis/VarietyOfSpots/')
 
-    # spot_dir = eg.diropenbox('Select directory containing spot images' #,
-    #                          #default = DEFAULTDIR
-                             # )
-    spot_dir = tps_dir
+    spot_dir = eg.diropenbox('Select directory containing spot images' #,
+                             #default = DEFAULTDIR
+                             )
 
     file_list = os.listdir(spot_dir)
 
@@ -233,5 +231,5 @@ def produce_tps_profile_data(tps_dir):
         os.remove(temp_dir+'\\'+file)
     os.rmdir(temp_dir)
 
-# if __name__ == '__main__':
-#     produce_tps_profile_data()
+if __name__ == '__main__':
+    produce_tps_profile_data()

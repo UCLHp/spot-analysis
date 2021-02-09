@@ -34,26 +34,27 @@ class Output:
         full_data = []
         for line in file:
             full_data.append([x.lstrip().rstrip() for x in line.split(',')])
-            if line.startswith('Beamspots found'):
-                no_of_spots = int(line[18:])
+        self.no_of_spots = len(full_data)//8
         self.full_data = full_data
         date = full_data[0][3]
         self.datetime = datetime.datetime.strptime(date, '%H:%M:%S %m/%d/%Y')
-        self.center = [float(full_data[0][5]),float(full_data[0][6])]
-        self.no_of_spots = int(full_data[2][1])
+        self.center = [float(full_data[0][5]), float(full_data[0][6])]
         self.spots_xy = {}
+        self.spots_xy_rel = {}
         self.spots_width = {}
         self.spots_height = {}
         self.spots_diameter = {}
         self.spots_quality = {}
         for i in range(1, 1+self.no_of_spots):
             row = [full_data.index(x) for x in full_data if x[0] == str(i)][0]
-            self.spots_xy[i] = [full_data[row][3],full_data[row][4]]
-            self.spots_width[i] = full_data[row][19]
-            self.spots_height[i] = full_data[row][23]
-            self.spots_diameter[i] = full_data[row][25]
-            self.spots_quality[i] = full_data[row][27]
-
+            self.spots_xy[i] = [self.center[0] - float(full_data[row][3]),
+                                self.center[1] - float(full_data[row][4])]
+            self.spots_xy_rel[i] = [float(full_data[row][3]),
+                                    float(full_data[row][4])]
+            self.spots_width[i] = float(full_data[row][19])
+            self.spots_height[i] = float(full_data[row][23])
+            self.spots_diameter[i] = float(full_data[row][25])
+            self.spots_quality[i] = float(full_data[row][27])
 
 def image_to_array(my_file, norm=False):
     '''
@@ -96,10 +97,15 @@ def find_centre(my_array, *, threshold=0.9,  norm=True):
     the upper/lowermost, left/rightmost pixels are used to find center pixel
     based on a normalised array by default but can use absolute image values
     '''
+    sub_array = my_array
+    sub_array[0:35] = 0
+    sub_array[1565:] = 0
+    sub_array[:, 0:20] = 0
+    sub_array[:, 1180:] = 0
     if norm:
-        my_array = np.true_divide(my_array, np.amax(my_array))
-    my_array = my_array.astype(np.float)  # np.true_divide(my_array, 1)
-    above_thresh = np.where(my_array > threshold)
+        sub_array = np.true_divide(sub_array, np.amax(sub_array))
+    sub_array = sub_array.astype(np.float)  # np.true_divide(my_array, 1)
+    above_thresh = np.where(sub_array > threshold)
     CentreRow = int((max(above_thresh[0])+min(above_thresh[0]))/2)
     CentreCol = int((max(above_thresh[1])+min(above_thresh[1]))/2)
     return [CentreRow, CentreCol]
