@@ -59,22 +59,30 @@ else:
 
 output_file = Output(os.path.join(logosdir, 'output.txt'))
 
-x_widths = list(output_file.spots_height.values())
-y_widths = list(output_file.spots_width.values())
+widths = list(output_file.spots_width.values())
+heights = list(output_file.spots_height.values())
 diameters = list(output_file.spots_diameter.values())
 qualities = list(output_file.spots_quality.values())
 
-print('x_widths\n', x_widths, '\n')
-print('y_widths\n', y_widths, '\n')
-print('diameters\n', diameters, '\n')
-print('qualities\n', qualities, '\n')
+print('widths\n')
+for i in widths:
+    print(i)
+print('\nheights\n')
+for i in heights:
+    print(i)
+print('\ndiameters\n')
+for i in diameters:
+    print(i)
+print('\nqualities\n')
+for i in qualities:
+    print(i)
 
 
 fig, (ax1, ax2) = plt.subplots(1, 2)
 fig.suptitle('FWHMs')
-ax1.plot(x_widths, label='x_FWHM')
-ax1.plot(y_widths, label='y_FWHM')
-ax1.plot(diameters, label='average FWHM every 5 degrees')
+ax1.plot(heights, 'bx', label='Heights')
+ax1.plot(widths, 'rx', label='Widths')
+ax1.plot(diameters, 'gx', label='average FWHM every 5 degrees')
 ax1.legend(loc="upper left")
 
 ax2.plot(list(output_file.spots_quality.values()),
