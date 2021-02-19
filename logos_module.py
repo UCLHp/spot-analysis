@@ -97,7 +97,7 @@ def find_centre(my_array, *, threshold=0.9,  norm=True):
     the upper/lowermost, left/rightmost pixels are used to find center pixel
     based on a normalised array by default but can use absolute image values
     '''
-    sub_array = my_array
+    sub_array = np.copy(my_array)
     sub_array[0:35] = 0
     sub_array[1565:] = 0
     sub_array[:, 0:20] = 0

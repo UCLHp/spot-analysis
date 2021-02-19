@@ -15,7 +15,11 @@ class Output:
         full_data = []
         for line in file:
             full_data.append([x.lstrip().rstrip() for x in line.split(',')])
-        self.no_of_spots = len(full_data)//8
+        print(full_data[10])
+        if full_data[10] == ['']:
+            self.no_of_spots = int(full_data[-6][0])
+        else:
+            self.no_of_spots = int(full_data[-5][0])
         self.full_data = full_data
         date = full_data[0][3]
         self.datetime = datetime.datetime.strptime(date, '%H:%M:%S %m/%d/%Y')
@@ -64,18 +68,18 @@ heights = list(output_file.spots_height.values())
 diameters = list(output_file.spots_diameter.values())
 qualities = list(output_file.spots_quality.values())
 
-print('widths\n')
-for i in widths:
-    print(i)
-print('\nheights\n')
-for i in heights:
-    print(i)
-print('\ndiameters\n')
-for i in diameters:
-    print(i)
-print('\nqualities\n')
-for i in qualities:
-    print(i)
+print('widths, heights, diameters, qualities\n')
+for i in range(len(widths)):
+    print(widths[i], heights[i], diameters[i], qualities[i])
+# print('\nheights\n')
+# for i in heights:
+#     print(i)
+# print('\ndiameters\n')
+# for i in diameters:
+#     print(i)
+# print('\nqualities\n')
+# for i in qualities:
+#     print(i)
 
 
 fig, (ax1, ax2) = plt.subplots(1, 2)

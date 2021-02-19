@@ -71,7 +71,7 @@ def produce_tps_profile_data():
     # DEFAULTDIR = ('C:/Users/csmgi/Desktop/Work/Coding/Test-Data/'
     #              'spot-analysis/VarietyOfSpots/')
 
-    spot_dir = eg.diropenbox('Select directory containing spot images' #,
+    spot_dir = eg.diropenbox('Select directory containing spot images'  # ,
                              #default = DEFAULTDIR
                              )
 
@@ -121,7 +121,7 @@ def produce_tps_profile_data():
     G2D_model = lm.twoD_Gaussian()
 
     # Create empty excel file to write results to, with ability to write errors as 0
-    workbook = xlsxwriter.Workbook(os.path.join(save_dir, 'TPS_Profiles_90.xlsx'), {'nan_inf_to_errors': True})
+    workbook = xlsxwriter.Workbook(os.path.join(save_dir, 'TPS_Profiles.xlsx'), {'nan_inf_to_errors': True})
     # Summary worksheet to contain parameters for all energies
     summary = workbook.add_worksheet('Summary')
     summary.write('B3', 'Image')
@@ -136,7 +136,7 @@ def produce_tps_profile_data():
         spot_array = lm.image_to_array(os.path.join(spot_dir,key), norm=True)
         # spot_array = lm.csv_to_array(os.path.join(spot_dir,key))#, norm=True)
 
-        spot_array = lm.crop_center(spot_array, 200, 200)
+        spot_array = lm.crop_center(spot_array, 300, 300)
         # find_centre used to give fit a decent starting point
         centre = lm.find_centre(spot_array, norm=True)
 
