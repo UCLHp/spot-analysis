@@ -1,7 +1,8 @@
 import os
 import datetime
 import matplotlib.pyplot as plt
-import easygui as eg
+from tkinter import Tk
+from tkinter.filedialog import askdirectory
 
 
 class Output:
@@ -42,7 +43,7 @@ class Output:
             self.spots_quality[i] = float(full_data[row][27])
 
 
-logosdir = eg.diropenbox(title='Please select location of acquired files\n')
+logosdir = askdirectory(title='Please select location of acquired files\n')
 
 if not logosdir:
     print('No directory selected:')
