@@ -2,12 +2,17 @@ import os
 import pandas as pd
 import shutil
 import datetime
+import easygui as eg
 
-xlsxfile = 'C:\\Users\\csmgi\\Desktop\\Work\\LocalLOGOSAnalysis.xlsx'
+# xlsxfile = 'C:\\Users\\csmgi\\Desktop\\Work\\LocalLOGOSAnalysis.xlsx'
+xlsxfile = eg.fileopenbox('Select excel file with image location details')
 
-logosdir = 'C:\\Users\\csmgi\\Desktop\\Work\\Coding\\Test-Results\\Gantry 270'
+# logosdir = 'C:\\Users\\csmgi\\Desktop\\Work\\Coding\\Test-Results\\Gantry 270'
+logosdir = eg.diropenbox('Select folder destination for all spots')
 
-allfoldersdir = 'C:\\Users\\csmgi\\Desktop\\LOGOS Analysis_2'
+# allfoldersdir = 'C:\\Users\\csmgi\\Desktop\\LOGOS Analysis_2'
+allfoldersdir = eg.diropenbox('Select dir containing all capture folders')
+
 
 class Output:
     '''
@@ -47,8 +52,6 @@ class Output:
             self.spots_quality[i] = float(full_data[row][27])
 
 
-
-
 location_key = pd.read_excel(xlsxfile, engine='openpyxl')
 
 # print(location_key)
@@ -62,7 +65,7 @@ datacheck = [["Collated Number", "Folder", "Image", "RS", "Distance", "Energy",
 copyfiles = input('Would you like to copy the folders? (y/n):')
 
 while copyfiles.lower() not in ['y', 'n']:
-    copyfiles = input('Would you like to copy the folders? (y/n):')
+    copyfiles = input("Please enter 'y' or 'n':")
 
 for index, row in location_key.iterrows():
     folder = row['Folder']
@@ -84,10 +87,6 @@ for index, row in location_key.iterrows():
     line_to_write.append(output_file.spots_diameter[image_num])
     datacheck.append(line_to_write)
 
-    # print(type(row))
-
-    # print(src)
-
     dst = os.path.join(logosdir, f'RangeShifter_{RS}cm')
 
     if (dist) == 0:
@@ -104,4 +103,10 @@ for index, row in location_key.iterrows():
         shutil.copyfile(src, dst)
 
 df = pd.DataFrame(datacheck[1:], columns=datacheck[0])
-# df.to_excel('C:\\Users\\csmgi\\Desktop\\Work\\LocalLOGOSAnalysis_Outputs.xlsx')
+
+saveresult = input('Would you like to save the results? (y/n):')
+while saveresult.lower() not in ['y', 'n']:
+    saveresult = input("Please enter 'y' or 'n'")
+if saveresult == 'y':
+    save_direg.diropenbox('Select the save location')
+    df.to_excel(os.path.join('Data_QA_Summary.xlsx'))
