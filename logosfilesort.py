@@ -108,5 +108,5 @@ saveresult = input('Would you like to save the results? (y/n):')
 while saveresult.lower() not in ['y', 'n']:
     saveresult = input("Please enter 'y' or 'n'")
 if saveresult == 'y':
-    save_direg.diropenbox('Select the save location')
-    df.to_excel(os.path.join('Data_QA_Summary.xlsx'))
+    save_dir = eg.diropenbox('Select the save location')
+    df.to_excel(os.path.join(save_dir, 'Data_QA_Summary.xlsx'))
