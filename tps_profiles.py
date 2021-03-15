@@ -12,15 +12,6 @@ spot images acquired using the LOGOS 3000 or 4000 scintillation detector.
 '''
 
 # This decorator allows you to create a "model" class as defined by astropy
-@models.custom_model
-def addition(x,y, plus=0):
-    '''
-    The inbuilt 2D gaussian function in astropy does not have a constant at the
-    end of the function to account for background. This simple function allows
-    the background constant to be added to the model by returning the offset
-    for each coordinate pair
-    '''
-    return(0*x + 0*y + plus)
 
 
 def write_chart(workbook, worksheet, x, key, title, datacol1, datacol2,
@@ -68,8 +59,43 @@ def produce_tps_profile_data():
     we then return the required profiles in excel for review
     '''
 
-    # DEFAULTDIR = ('C:/Users/csmgi/Desktop/Work/Coding/Test-Data/'
-    #              'spot-analysis/VarietyOfSpots/')
+    log_dir = "C:\\Users\\csmgi\\Desktop\\Work\\LocalLOGOSkey01.xlsx"
+    # log_dir = eg.fileopenbox('Select image acquisition log')
+
+    if not log_dir:
+        print('No log selected, code will terminate')
+        input('Press enter to close window')
+        raise SystemExit
+
+    acquiredfoldersdir = "C:\\Users\\csmgi\\NHS\\(Canc) Radiotherapy - PBT Physics Team - PBT Physics Team\\QAandCommissioning\\Gantry 1\\Commissioning\\Data\\Profiles\\Raw Data\\2021_03_10-post-retune-check"
+    # acquiredfoldersdir = eg.diropenbox('Select directory containing all acquired LOGOS folders')
+
+
+    if not acquiredfoldersdir:
+        print('No folder directory selected, code will terminate')
+        input('Press enter to close window')
+        raise SystemExit
+
+    spot_dataset = lm.create_spot_dataset(log_dir, acquiredfoldersdir)
+
+    ga_list = spot_dataset.GA.unique()
+    rs_list = spot_dataset.RS.unique()
+    dist_list = spot_dataset.Distance.unique()
+
+    ga = eg.choicebox("Select Gantry Angle for fit analysis", "GA", ga_list)
+    rs = eg.choicebox("Select Range Shifter", "RS", rs_list)
+    dist = eg.choicebox("Select Distance", "Distance from Iso", dist_list)
+
+    print()
+    ga_subdf = spot_dataset.loc[spot_dataset['GA'] == ga]
+    print(ga_subdf)
+
+
+produce_tps_profile_data()
+"""
+
+
+
 
     spot_dir = eg.diropenbox('Select directory containing spot images'  # ,
                              #default = DEFAULTDIR
@@ -233,3 +259,4 @@ def produce_tps_profile_data():
 
 if __name__ == '__main__':
     produce_tps_profile_data()
+"""
