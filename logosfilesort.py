@@ -59,8 +59,8 @@ location_key = pd.read_excel(xlsxfile, engine='openpyxl')
 location_key['Image'] = [str(int(i)).zfill(8) for i in location_key['Image']]
 location_key['Collated Number'] = [str(int(i)).zfill(8) for i in location_key['Collated Number']]
 
-datacheck = [["Collated Number", "Folder", "Image", "RS", "Distance", "Energy",
-             "Width", "Height", "diameter"]]
+datacheck = [["Collated Number", "Folder", "Image", "GA", "RS", "Distance",
+              "Energy", "Width", "Height", "diameter"]]
 
 copyfiles = input('Would you like to copy the folders? (y/n):')
 
@@ -72,10 +72,11 @@ for index, row in location_key.iterrows():
     image_name = row['Image'] + '.tif'
     dist = row['Distance']
     RS = row['RS']
+    GA = row['GA']
     new_image_name = row['Collated Number'] + '.tif'
 
     src = os.path.join(allfoldersdir, folder)
-    print(f'Dist: {dist}', f'RS: {RS}', f"Energy: {row['Energy']}")
+    print(f'GA: {GA}, Dist: {dist}', f'RS: {RS}', f"Energy: {row['Energy']}")
     output_file = Output(os.path.join(src, "output.txt"))
 
     src = os.path.join(src, image_name)
@@ -87,7 +88,7 @@ for index, row in location_key.iterrows():
     line_to_write.append(output_file.spots_diameter[image_num])
     datacheck.append(line_to_write)
 
-    dst = os.path.join(logosdir, f'RangeShifter_{RS}cm')
+    dst = os.path.join(os.path.join(logosdir, f'G{GA}'), f'RangeShifter_{RS}cm')
 
     if (dist) == 0:
         dist_folder = 'Distance_is0cm'

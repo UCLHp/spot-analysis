@@ -86,7 +86,8 @@ def produce_tps_profile_data():
     rs = eg.choicebox("Select Range Shifter", "RS", rs_list)
     dist = eg.choicebox("Select Distance", "Distance from Iso", dist_list)
 
-    print()
+    print(spot_dataset)
+    print(ga)
     ga_subdf = spot_dataset.loc[spot_dataset['GA'] == ga]
     print(ga_subdf)
 
