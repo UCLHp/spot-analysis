@@ -4,12 +4,7 @@ import numpy as np
 import pandas as pd
 from scipy.ndimage import median_filter
 from PIL import Image
-import datetime
 from astropy.modeling import models, fitting
-
-
-from matplotlib import cm
-import matplotlib.pyplot as plt
 
 
 def image_to_array(my_file, norm=False):
@@ -120,6 +115,42 @@ def doubl_gaus(x, y, amplitude=1, x_mean=0, y_mean=0, theta=0, sigma_x1=1, sigma
     return amplitude*np.exp(-(a*((x-x_mean)**2) + 2*b*(x-x_mean)*(y-y_mean) + c*((y-y_mean)**2))) + (1-amplitude)*np.exp(-(d*((x-x_mean)**2) + 2*e*(x-x_mean)*(y-y_mean) + f*((y-y_mean)**2)))
 
 
+def raw_profiles(imagearray, center):
+    '''Returns X, Y profiles centered on LOGOS defined center
+
+    Inputs
+    Image array - the spot tif file as a numpy array
+    center - read from LOGOS Output.txt file
+
+    Returns
+    list containing horizontal and vertical profiles
+    '''
+    hor_y = imagearray[center[1]]
+    hor_x = [x for x in range(len(imagearray[0]))]
+    vert_y = [pixelrow[center[0]] for pixelrow in imagearray]
+    vert_x = [x for x in range(len(vert_y))]
+    return [hor_x, hor_y, vert_x, vert_y]
+
+def adjusted_profiles(rawprofiles, center, pixeldimensions):
+    '''Centers coordinates on central pixel and converts distance from pixels
+    to mm
+
+    Inputs
+    raw_profiles - list of raw profiles defined above
+    center - read from LOGOS Output.txt file
+
+    Returns
+    adjusted_profile - centralised profiles with mm for x axes
+    '''
+    rawprofiles[0] = [x - center[0] for x in rawprofiles[0]]
+    rawprofiles[2] = [x - center[1] for x in rawprofiles[2]]
+
+    rawprofiles[0] = [x/pixeldimensions[0] for x in rawprofiles[0]]
+    rawprofiles[2] = [x/pixeldimensions[1] for x in rawprofiles[2]]
+
+    return rawprofiles
+
+
 class Spot:
     '''Represents single spot with details from LOGOS and options to analyse
 
@@ -135,10 +166,21 @@ class Spot:
                                            self.pixeldimensions,
                                            self.output_data['RelativeCenter']
                                            )
+        self.rawprofiles = raw_profiles(self.imagearray,
+                                        self.central_pixel
+                                        )
+        self.adjustedprofiles = adjusted_profiles(self.rawprofiles,
+                                                  self.central_pixel,
+                                                  self.pixeldimensions
+                                                  )
         self.ga = ga
         self.rs = rs
         self.dist = dist
         self.energy = energy
+        self.singlefit = None
+        self.singlefitarray = None
+        self.doublefit = None
+        self.doublefitarray = None
 
     def rotate_pixeldata(self, times=1):
         '''Rotate pixel array 90 degrees anticlockwise'''
@@ -149,15 +191,15 @@ class Spot:
         fit_p = fitting.SLSQPLSQFitter()
         maxpix = np.amax(median_filter(self.imagearray, size=2))
         singl_gaus_mod = models.Gaussian2D(amplitude=maxpix,
-                                           x_mean=self.central_pixel[0]/3.6,
-                                           y_mean=self.central_pixel[1]/3.6,
+                                           x_mean=0,
+                                           y_mean=0,
                                            bounds={'amplitude': (0.7 * maxpix, 1.3 * maxpix),
                                                    'theta': (-1.58, 1.58)}
                                            )
 
         doubl_gaus_mod = doubl_gaus(amplitude=maxpix,
-                                    x_mean=self.central_pixel[0]/3.6,
-                                    y_mean=self.central_pixel[1]/3.6,
+                                    x_mean=0,
+                                    y_mean=0,
                                     sigma_x1=1,
                                     sigma_y1=1,
                                     bounds={'amplitude': (0.7 * maxpix, maxpix),
@@ -172,16 +214,20 @@ class Spot:
         x, y = np.meshgrid(np.arange(0, len(self.imagearray[0])),
                            np.arange(0, len(self.imagearray))
                            )
-        x = np.true_divide(x, self.pixeldimensions[0])
-        y = np.true_divide(y, self.pixeldimensions[1])
+        x = np.true_divide(x - self.central_pixel[0], self.pixeldimensions[0])
+        y = np.true_divide(y - self.central_pixel[1], self.pixeldimensions[1])
 
-        print(f'Fitting Single Gaussian for {image_dir}')
-        p1 = fit_p(singl_gaus_mod, x, y, median_filter(self.imagearray, size=2), verblevel=0)
-        print(f'Fitting Double Gaussian for {image_dir}')
-        p2 = fit_p(doubl_gaus_mod, x, y, median_filter(self.imagearray, size=2), verblevel=0)
+        normarray = np.true_divide(self.imagearray, self.imagearray[central_pixel[0]]central_pixel[1])
+
+        print(f'Fitting Single Gaussian for {self.energy}')
+        p1 = fit_p(singl_gaus_mod, x, y, median_filter(normarray, size=2), verblevel=0)
+        print(f'Fitting Double Gaussian for {self.energy}')
+        p2 = fit_p(doubl_gaus_mod, x, y, median_filter(normarray, size=2), verblevel=0)
 
         self.singlefit = p1
+        self.singlefitarray = p1(x,y)
         self.doublefit = p2
+        self.doublefitarray = p2(x, y)
 
 
 def create_location_key(acquisitionlog):
@@ -201,7 +247,7 @@ def create_spot_dataset(acquisitionlog, acquiredfoldersdir):
 
     _spot_dataset = [list(spot_dataset.columns)]
     _spot_dataset[0].extend(['Width', 'RWidth', '2DWidth'])
-    print(_spot_dataset)
+
     for index, row in spot_dataset.iterrows():
         print(f'Row {index+1} of {len(spot_dataset)}')
         image_folder = row['Folder']

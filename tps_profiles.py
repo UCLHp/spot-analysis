@@ -11,8 +11,6 @@ This Script creates a report containing single and double 2D Gaussian fits to
 spot images acquired using the LOGOS 3000 or 4000 scintillation detector.
 '''
 
-# This decorator allows you to create a "model" class as defined by astropy
-
 
 def write_chart(workbook, worksheet, x, key, title, datacol1, datacol2,
                 datacol3, datacol4, pastecell):
@@ -27,31 +25,31 @@ def write_chart(workbook, worksheet, x, key, title, datacol1, datacol2,
                                         + str(8+len(x[0]))),
         'values':     "".join("=" + key + f"!${datacol2}$9:${datacol2}$"
                                         + str(8+len(x[0]))),
-        'line': {'color':'red', 'width': 1,},
-        'marker': {'type':'none'},
+        'line': {'color': 'red', 'width': 1, },
+        'marker': {'type': 'none'},
     })
     chart1.add_series({
         'name':       'Single Fit Model',
         'categories': "".join("="+key+f"!${datacol1}$9:${datacol1}$"+str(8+len(x[0]))),
         'values':     "".join("="+key+f"!${datacol3}$9:${datacol3}$"+str(8+len(x[0]))),
-        'line': {'color':'blue', 'width': 1,},
-        'marker': {'type':'none'},
+        'line': {'color': 'blue', 'width': 1, },
+        'marker': {'type': 'none'},
     })
     chart1.add_series({
         'name':       'Double Fit Model',
         'categories': "".join("="+key+f"!${datacol1}$9:${datacol1}$"+str(8+len(x[0]))),
         'values':     "".join("="+key+f"!${datacol4}$9:${datacol4}$"+str(8+len(x[0]))),
-        'line': {'color':'green', 'width': 1,},
-        'marker': {'type':'none'},
+        'line': {'color': 'green', 'width': 1, },
+        'marker': {'type': 'none'},
     })
-    chart1.set_title ({'name': f'{title}'})
+    chart1.set_title({'name': f'{title}'})
     chart1.set_x_axis({'name': 'Central Axis (mm)'})
     chart1.set_y_axis({'name': 'Relative intensity'})
     chart1.set_style(11)
     worksheet.insert_chart(pastecell, chart1)
 
 
-def produce_tps_profile_data():
+def produce_spot_dict():
     '''
     Function to produce spot profiles for entry into our TPS
     For a directory of acquired single spot tif files using the LOGOS 3/4000
@@ -59,6 +57,7 @@ def produce_tps_profile_data():
     we then return the required profiles in excel for review
     '''
 
+    # log_dir = "C:\\Users\\csmgi\\NHS\\(Canc) Radiotherapy - PBT Physics Team - PBT Physics Team\\QAandCommissioning\\Gantry 1\\Commissioning\\Data\\Profiles\\Raw Data\\2021_03_10-post-retune-check\\2021-03-10-image_log_Clear.xlsx"
     log_dir = "C:\\Users\\csmgi\\Desktop\\Work\\LocalLOGOSkey01.xlsx"
     # log_dir = eg.fileopenbox('Select image acquisition log')
 
@@ -70,7 +69,6 @@ def produce_tps_profile_data():
     acquiredfoldersdir = "C:\\Users\\csmgi\\NHS\\(Canc) Radiotherapy - PBT Physics Team - PBT Physics Team\\QAandCommissioning\\Gantry 1\\Commissioning\\Data\\Profiles\\Raw Data\\2021_03_10-post-retune-check"
     # acquiredfoldersdir = eg.diropenbox('Select directory containing all acquired LOGOS folders')
 
-
     if not acquiredfoldersdir:
         print('No folder directory selected, code will terminate')
         input('Press enter to close window')
@@ -79,23 +77,145 @@ def produce_tps_profile_data():
     spot_dataset = lm.create_spot_dataset(log_dir, acquiredfoldersdir)
 
     ga_list = spot_dataset.GA.unique()
-    rs_list = spot_dataset.RS.unique()
-    dist_list = spot_dataset.Distance.unique()
-
     ga = eg.choicebox("Select Gantry Angle for fit analysis", "GA", ga_list)
+    ga_subdf = spot_dataset.loc[spot_dataset['GA'] == int(ga)]
+
+    rs_list = ga_subdf.RS.unique()
     rs = eg.choicebox("Select Range Shifter", "RS", rs_list)
+    rs_subdf = ga_subdf.loc[ga_subdf['RS'] == int(rs)]
+
+    dist_list = rs_subdf.Distance.unique()
     dist = eg.choicebox("Select Distance", "Distance from Iso", dist_list)
+    subdf = rs_subdf.loc[rs_subdf['Distance'] == int(dist)]
 
-    print(spot_dataset)
-    print(ga)
-    ga_subdf = spot_dataset.loc[spot_dataset['GA'] == ga]
-    print(ga_subdf)
+    spots = {}
+    for index, row in subdf.iterrows():
+        folder = row['Folder']
+        image_name = row['Image'] + '.tif'
+        energy = row['Energy']
+
+        spottif = os.path.join(acquiredfoldersdir, folder)
+        spottif = os.path.join(spottif, image_name)
+        spots[energy] = lm.Spot(spottif, ga, rs, dist, energy)
+
+    return spots
 
 
-produce_tps_profile_data()
+
+
+
+spots = produce_spot_dict()
+
+for key in spots:
+    spots[key].create_fits()
+
+
+
+
+
+# workbook = xlsxwriter.Workbook(os.path.join(save_dir, 'TPS_Profiles.xlsx'), {'nan_inf_to_errors': True})
+
+def plot_fits(spots, ga, rs, dist):
+    '''Create plots to review spot profiles'''
+
+    save_dir = eg.diropenbox(title='Please Select Save Location')
+    # Create empty excel file to write results to, with ability to write errors as 0
+    savename = f'Fits_G{ga}_RS{rs}_Dist{dist}.xlsx'
+    workbook = xlsxwriter.Workbook(os.path.join(save_dir, savename), {'nan_inf_to_errors': True})
+    # Summary worksheet to contain parameters for all energies
+    summary = workbook.add_worksheet('Summary')
+    summary.write('B3', 'Energy')
+    summary.merge_range('C2:I2', 'Single Gaussian Fit')
+    summary.merge_range('J2:R2', 'Double Gaussian Fit')
+    summary.write_row('C3', list(lm.models.Gaussian2D().param_names) + list(lm.doubl_gaus().param_names))
+    # counter used to add line per image analysed
+    counter = 0
+
+    for key in sorted(spots):
+        print(f"Fitting profiles for {key}MeV Image")
+
+        # Write key and parameter values to summary sheet
+        summary.write(f'B{counter+4}', key)
+        summary.write_row(f'C{counter+4}', list(spots[key].p1.parameters) + list(spots[key].p2.parameters))
+
+        # Create and write sheet for specific image
+        worksheet = workbook.add_worksheet(key)
+
+        worksheet.merge_range('B2:B3', 'Single Params')
+        worksheet.merge_range('B4:B5', 'Double Params')
+
+        # Replicates data on summary sheet
+        worksheet.write_row('C2', list(spots[key].p1.param_names))
+        worksheet.write_row('C3', list(spots[key].p1.parameters))
+        worksheet.write_row('C4', list(spots[key].p2.param_names))
+        worksheet.write_row('C5', list(spots[key].p2.parameters))
+
+        # Main data table titles
+        worksheet.merge_range('B7:E7', 'Horizontal Profile')
+        worksheet.merge_range('F7:I7', 'Vertical Profile')
+        worksheet.merge_range('J7:O7', 'Values for Log Plots')
+        worksheet.write_row('B8', ['Distance', 'Image intensity', 'Single Fit Intensity', 'Double Fit Intensity'])
+        worksheet.write_row('F8', ['Distance', 'Image intensity', 'Single Fit Intensity', 'Double Fit Intensity'])
+        worksheet.write_row('J8', ['LOG Horizontal Image intensity', 'LOG Horizontal Single Fit Intensity', 'LOG Horizontal Double Fit Intensity'])
+        worksheet.write_row('M8', ['LOG Vertical Image intensity', 'LOG Vertical Single Fit Intensity', 'LOG Vertical Double Fit Intensity'])
+
+        # x[0] represents the crossprofile distance
+        # The lines for plot are taken from the "centre" defined by the module
+        worksheet.write_column('B9', spots[key].adjustedprofiles[0])
+        worksheet.write_column('C9', spots[key].adjustedprofiles[1])
+        worksheet.write_column('D9', spots[key].singlefitimage[spots[key].central_pixel[1]])
+        worksheet.write_column('E9', spots[key].doublefitimage[spots[key].central_pixel[1]])
+
+        # list comp to take 'i'th item in each row in 2D array
+        worksheet.write_column('F9', spots[key].adjustedprofiles[2])
+        worksheet.write_column('G9', spots[key].adjustedprofiles[3])
+        worksheet.write_column('H9', [item[spots[key].central_pixel[0]] for item in spots[key].singlefitimage])
+        worksheet.write_column('I9', [item[spots[key].central_pixel[0]] for item in spots[key].doublefitimage])
+
+        # Writing log values for log plots
+        worksheet.write_column('J9', np.log10(spot_array[centre[1]]))
+        worksheet.write_column('K9', np.log10(p1(x, y)[centre[1]]))
+        worksheet.write_column('L9', np.log10(p2(x, y)[centre[1]]))
+        worksheet.write_column('M9', [np.log10(item[centre[0]]) for item in spot_array])
+        worksheet.write_column('N9', [np.log10(item[centre[0]]) for item in p1(x, y)])
+        worksheet.write_column('O9', [np.log10(item[centre[0]]) for item in p2(x, y)])
+
+        # Create plots using function defined earlier
+        write_chart(workbook, worksheet, x, key, 'Horizontal Profile', 'B', 'C', 'D', 'E', 'K5')
+        write_chart(workbook, worksheet, x, key, 'Horizontal Profile log 10', 'B', 'J', 'K', 'L', 'S5')
+        write_chart(workbook, worksheet, x, key, 'Vertical Profile', 'F', 'G', 'H', 'I', 'K20')
+        write_chart(workbook, worksheet, x, key, 'Vertical Profile log 10', 'F', 'M', 'N', 'O', 'S20')
+
+        # Save difference images in temporary directory
+        plt.imsave(temp_dir + f'\\{key}_diff_image1.png', p1(x,y) - spot_array)
+        plt.imsave(temp_dir + f'\\{key}_diff_image2.png', p2(x,y) - spot_array)
+
+        # Insert saved images into the excel file
+        # Scal will need to be adjusted with image size from LOGOS
+        worksheet.insert_image('K35', temp_dir + f'\\{key}_diff_image1.png', {'x_scale':4, 'y_scale':4})
+        worksheet.insert_image('S35', temp_dir + f'\\{key}_diff_image2.png', {'x_scale':4, 'y_scale':4})
+
+        counter+=1
+
+    workbook.close()
+
+
+
+
 """
 
 
+def profiles_to_excel(spots):
+    workbook = xlsxwriter.Workbook(os.path.join(save_dir, 'raw_profiles.xlsx'))#, {'nan_inf_to_errors': True})
+    for key in spots:
+        print(f'adding worksheet for {key}')
+        worksheet = workbook.add_worksheet(str(key))
+        worksheet.write_row('A1', ['Hor_x', 'Hor_y', 'Vert_x', 'Vert_y'])
+        worksheet.write_column('A2', spots[key].rawprofiles[0])
+        worksheet.write_column('B2', spots[key].rawprofiles[1])
+        worksheet.write_column('C2', spots[key].rawprofiles[2])
+        worksheet.write_column('D2', spots[key].rawprofiles[3])
+        workbook.close()
 
 
     spot_dir = eg.diropenbox('Select directory containing spot images'  # ,
