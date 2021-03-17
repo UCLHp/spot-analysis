@@ -4,14 +4,14 @@ import shutil
 import datetime
 import easygui as eg
 
-# xlsxfile = 'C:\\Users\\csmgi\\Desktop\\Work\\LocalLOGOSAnalysis.xlsx'
-xlsxfile = eg.fileopenbox('Select excel file with image location details')
+xlsxfile = 'C:\\Users\\csmgi\\Desktop\\Work\\Coding\\Test-Data\\LOGOS\\__OnTheFly__\\2021_03_16_Profiles.xlsx'
+# xlsxfile = eg.fileopenbox('Select excel file with image location details')
 
 # logosdir = 'C:\\Users\\csmgi\\Desktop\\Work\\Coding\\Test-Results\\Gantry 270'
 logosdir = eg.diropenbox('Select folder destination for all spots')
 
-# allfoldersdir = 'C:\\Users\\csmgi\\Desktop\\LOGOS Analysis_2'
-allfoldersdir = eg.diropenbox('Select dir containing all capture folders')
+allfoldersdir = 'C:\\Users\\csmgi\\NHS\\(Canc) Radiotherapy - PBT Physics Team - PBT Physics Team\\QAandCommissioning\\Gantry 1\\Commissioning\\Data\\Profiles\\Raw Data\\2021_03_16_XRV3000'
+# allfoldersdir = eg.diropenbox('Select dir containing all capture folders')
 
 
 class Output:
@@ -63,17 +63,17 @@ datacheck = [["Collated Number", "Folder", "Image", "GA", "RS", "Distance",
               "Energy", "Width", "Height", "diameter"]]
 
 copyfiles = input('Would you like to copy the folders? (y/n):')
-
+#
 while copyfiles.lower() not in ['y', 'n']:
     copyfiles = input("Please enter 'y' or 'n':")
 
 for index, row in location_key.iterrows():
     folder = row['Folder']
-    image_name = row['Image'] + '.tif'
+    image_name = row['Image'] + '.bmp'
     dist = row['Distance']
     RS = row['RS']
     GA = row['GA']
-    new_image_name = row['Collated Number'] + '.tif'
+    new_image_name = row['Collated Number'] + '.bmp'
 
     src = os.path.join(allfoldersdir, folder)
     print(f'GA: {GA}, Dist: {dist}', f'RS: {RS}', f"Energy: {row['Energy']}")
