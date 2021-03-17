@@ -16,6 +16,9 @@ def write_chart(workbook, worksheet, x, key, title, datacol1, datacol2,
                 datacol3, datacol4, pastecell):
     '''
     4 graphs are produced per excel worksheet, this function avoids duplication
+    x is for the x axis
+    pastecell is where the graph will be pasted
+    key is the
     '''
 
     chart1 = workbook.add_chart({'type': 'scatter'})
@@ -159,7 +162,6 @@ def plot_fits(spots, ga, rs, dist):
         worksheet.write_row('J8', ['LOG Horizontal Image intensity', 'LOG Horizontal Single Fit Intensity', 'LOG Horizontal Double Fit Intensity'])
         worksheet.write_row('M8', ['LOG Vertical Image intensity', 'LOG Vertical Single Fit Intensity', 'LOG Vertical Double Fit Intensity'])
 
-        # x[0] represents the crossprofile distance
         # The lines for plot are taken from the "centre" defined by the module
         worksheet.write_column('B9', spots[key].adjustedprofiles[0])
         worksheet.write_column('C9', spots[key].adjustedprofiles[1])
@@ -173,12 +175,12 @@ def plot_fits(spots, ga, rs, dist):
         worksheet.write_column('I9', [item[spots[key].central_pixel[0]] for item in spots[key].doublefitimage])
 
         # Writing log values for log plots
-        worksheet.write_column('J9', np.log10(spot_array[centre[1]]))
-        worksheet.write_column('K9', np.log10(p1(x, y)[centre[1]]))
-        worksheet.write_column('L9', np.log10(p2(x, y)[centre[1]]))
-        worksheet.write_column('M9', [np.log10(item[centre[0]]) for item in spot_array])
-        worksheet.write_column('N9', [np.log10(item[centre[0]]) for item in p1(x, y)])
-        worksheet.write_column('O9', [np.log10(item[centre[0]]) for item in p2(x, y)])
+        worksheet.write_column('J9', np.log10(spots[key].adjustedprofiles[1]))
+        worksheet.write_column('K9', np.log10(spots[key].singlefitimage[spots[key].central_pixel[1]]))
+        worksheet.write_column('L9', np.log10(spots[key].doublefitimage[spots[key].central_pixel[1]]))
+        worksheet.write_column('M9', [np.log10(spots[key].adjustedprofiles[3])])
+        worksheet.write_column('N9', [np.log10(item[spots[key].central_pixel[0]]) for item in spots[key].singlefitimage])
+        worksheet.write_column('O9', [np.log10(item[spots[key].central_pixel[0]]) for item in spots[key].doublefitimage])
 
         # Create plots using function defined earlier
         write_chart(workbook, worksheet, x, key, 'Horizontal Profile', 'B', 'C', 'D', 'E', 'K5')

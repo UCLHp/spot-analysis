@@ -345,12 +345,6 @@ def central_xy_profiles(array, center, resolution=[1, 1]):
 #     starty = y//2-(cropy//2)
 #     return img[starty:starty+cropy, startx:startx+cropx]
 
-# No longer required as Double Gaussian taken from astropy library with offset
-
-
-
-# No longer required as Double Gaussian taken from astropy library with offset
-
 
 
 def uniformity_ROI(uniformity_array, threshold=0.5):
