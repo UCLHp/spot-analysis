@@ -217,7 +217,7 @@ class Spot:
         x = np.true_divide(x - self.central_pixel[0], self.pixeldimensions[0])
         y = np.true_divide(y - self.central_pixel[1], self.pixeldimensions[1])
 
-        normarray = np.true_divide(self.imagearray, self.imagearray[central_pixel[0]]central_pixel[1])
+        normarray = np.true_divide(self.imagearray, self.imagearray[central_pixel[0]][central_pixel[1]])
 
         print(f'Fitting Single Gaussian for {self.energy}')
         p1 = fit_p(singl_gaus_mod, x, y, median_filter(normarray, size=2), verblevel=0)
