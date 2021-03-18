@@ -2,6 +2,7 @@ import os
 
 import numpy as np
 import pandas as pd
+import cv2
 from scipy.ndimage import median_filter
 from PIL import Image
 from astropy.modeling import models, fitting
@@ -19,6 +20,15 @@ def image_to_array(my_file, norm=False):
     if norm:
         my_array = np.true_divide(my_array, np.amax(median_filter(my_array, size=2)))
     return my_array
+
+def find_spot(spotarray):
+
+    gray = cv2.cvtColor(spotarray, cv2.COLOR_GRAY2BGR)
+    gray = cv2.GaussianBlur(gray, (21, 21), 0)
+    (minval, maxval, minloc, maxloc) = cv2.minMaxLoc(gray)
+    return maxloc
+
+def crop_spot(spotarray, maxloc):
 
 
 def fetch_output_data(image_dir):
