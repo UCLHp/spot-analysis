@@ -21,6 +21,39 @@ def image_to_array(my_file, norm=False):
     return my_array
 
 
+def find_spot(spotarray):
+    gray = cv2.GaussianBlur(spotarray, (21, 21), 0)
+    (minval, maxval, minloc, maxloc) = cv2.minMaxLoc(gray)
+    return maxloc
+
+
+def cropspot(spotarray, maxloc, cutoff, growby = 1):
+    '''Crops image around spot based on normalised percentile
+
+    growby can be used to grow region based on multiplier
+    '''
+    # Use gaussian blur to get rid of hot pixels and noise
+    gray = cv2.GaussianBlur(spotarray, (21, 21), 0)
+    normarray = np.asarray(gray/np.amax(gray))
+    xprof = normarray[maxloc[1]]
+    yprof = [i[maxloc[0]] for i in normarray]
+
+    # Find first and last value in the list that is above the cutoff value
+    xindexl = [n for n, i in enumerate(xprof) if i > cutoff][0]
+    xindexr = [n for n, i in enumerate(xprof) if i > cutoff][-1]
+    yindext = [n for n, i in enumerate(yprof) if i > cutoff][0]
+    yindexb = [n for n, i in enumerate(yprof) if i > cutoff][-1]
+
+    xindexl = int(maxloc[0] - (maxloc[0] - xindexl) * growby)
+    xindexr = int(maxloc[0] + (xindexr - maxloc[0]) * growby)
+    yindext = int(maxloc[1] - (maxloc[1] - yindext) * growby)
+    yindexb = int(maxloc[1] + (yindexb - maxloc[1]) * growby)
+
+    croppedarray = spotarray[yindext:yindexb, xindexl:xindexr]
+    maxpix = [maxloc[0]-xindexl, maxloc[1]-yindext]
+
+    return croppedarray, maxpix
+
 def fetch_output_data(image_dir):
     '''Read LOGOS analysis results of spot from output.txt in same directory
 
@@ -131,19 +164,19 @@ def raw_profiles(imagearray, center):
     vert_x = [x for x in range(len(vert_y))]
     return [hor_x, hor_y, vert_x, vert_y]
 
-def adjusted_profiles(rawprofiles, center, pixeldimensions):
-    '''Centers coordinates on central pixel and converts distance from pixels
+def adjusted_profiles(rawprofiles, centre, pixeldimensions):
+    '''Centres coordinates on central pixel and converts distance from pixels
     to mm
 
     Inputs
     raw_profiles - list of raw profiles defined above
-    center - read from LOGOS Output.txt file
+    centre - read from LOGOS Output.txt file
 
     Returns
     adjusted_profile - centralised profiles with mm for x axes
     '''
-    rawprofiles[0] = [x - center[0] for x in rawprofiles[0]]
-    rawprofiles[2] = [x - center[1] for x in rawprofiles[2]]
+    rawprofiles[0] = [x - centre[0] for x in rawprofiles[0]]
+    rawprofiles[2] = [x - centre[1] for x in rawprofiles[2]]
 
     rawprofiles[0] = [x/pixeldimensions[0] for x in rawprofiles[0]]
     rawprofiles[2] = [x/pixeldimensions[1] for x in rawprofiles[2]]
@@ -159,20 +192,21 @@ class Spot:
     fits and plots of the data
     '''
     def __init__(self, image_dir, ga=None, rs=None, dist=None, energy=None):
-        self.imagearray = image_to_array(image_dir, norm=True)
+        self.imagearray = image_to_array(image_dir, norm=False)
+        self.spotloc = findspot(self.imagearray)
+        self.cropspot, self.cropspotcentre = cropspot(self.imagearray,
+                                                      self.spotloc,
+                                                      cutoff=0.5,
+                                                      growby=1.8)
         self.pixeldimensions = fetch_pixel_dimensions(image_dir)
         self.output_data = fetch_output_data(image_dir)
-        self.central_pixel = central_pixel(self.output_data['CameraCenter'],
-                                           self.pixeldimensions,
-                                           self.output_data['RelativeCenter']
-                                           )
-        self.rawprofiles = raw_profiles(self.imagearray,
-                                        self.central_pixel
-                                        )
-        self.adjustedprofiles = adjusted_profiles(self.rawprofiles,
-                                                  self.central_pixel,
-                                                  self.pixeldimensions
-                                                  )
+        self.rawcropprofiles = raw_profiles(self.croppedspot,
+                                            self.cropcentre
+                                            )
+        self.adjustedcropprofiles = adjusted_profiles(self.rawcropprofiles,
+                                                      self.cropcentre,
+                                                      self.pixeldimensions
+                                                      )
         self.ga = ga
         self.rs = rs
         self.dist = dist
@@ -189,24 +223,26 @@ class Spot:
 
     def create_fits(self):
         fit_p = fitting.SLSQPLSQFitter()
-        maxpix = np.amax(median_filter(self.imagearray, size=2))
-        singl_gaus_mod = models.Gaussian2D(amplitude=maxpix,
+        maxpix = self.imagearray[self.spotloc[1], self.spotloc[0]]
+        singl_gaus_mod = models.Gaussian2D(amplitude=1,
                                            x_mean=0,
                                            y_mean=0,
-                                           bounds={'amplitude': (0.7 * maxpix, 1.3 * maxpix),
+                                           bounds={'amplitude': (0.9 * maxpix, 1.1 * maxpix),
                                                    'theta': (-1.58, 1.58)}
                                            )
 
-        doubl_gaus_mod = doubl_gaus(amplitude=maxpix,
+        doubl_gaus_mod = doubl_gaus(amplitude=0.9,
                                     x_mean=0,
                                     y_mean=0,
                                     sigma_x1=1,
                                     sigma_y1=1,
-                                    bounds={'amplitude': (0.7 * maxpix, maxpix),
+                                    sigma_x2=20,
+                                    sigma_y2=20
+                                    bounds={'amplitude': (0.7, 1),
                                             'sigma_x1': (1E-9, 100),
                                             'sigma_y1': (1E-9, 100),
-                                            'sigma_x2': (1E-9, 100),
-                                            'sigma_y2': (1E-9, 100),
+                                            'sigma_x2': (1, 100),
+                                            'sigma_y2': (1, 100),
                                             'theta': (-1.58, 1.58)
                                             }
                                     )
