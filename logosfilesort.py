@@ -63,7 +63,7 @@ datacheck = [["Collated Number", "Folder", "Image", "GA", "RS", "Distance",
               "Energy", "Width", "Height", "diameter"]]
 
 copyfiles = input('Would you like to copy the folders? (y/n):')
-#
+
 while copyfiles.lower() not in ['y', 'n']:
     copyfiles = input("Please enter 'y' or 'n':")
 

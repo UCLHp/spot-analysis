@@ -52,30 +52,13 @@ def write_chart(workbook, worksheet, x, key, title, datacol1, datacol2,
     worksheet.insert_chart(pastecell, chart1)
 
 
-def produce_spot_dict():
+def produce_spot_dict(log_dir, acquiredfoldersdir):
     '''
     Function to produce spot profiles for entry into our TPS
     For a directory of acquired single spot tif files using the LOGOS 3/4000
     Single and double 2D Gaussians are fitted using the astropy library
     we then return the required profiles in excel for review
     '''
-
-    # log_dir = "C:\\Users\\csmgi\\NHS\\(Canc) Radiotherapy - PBT Physics Team - PBT Physics Team\\QAandCommissioning\\Gantry 1\\Commissioning\\Data\\Profiles\\Raw Data\\2021_03_10-post-retune-check\\2021-03-10-image_log_Clear.xlsx"
-    log_dir = "C:\\Users\\csmgi\\Desktop\\Work\\LocalLOGOSkey01.xlsx"
-    # log_dir = eg.fileopenbox('Select image acquisition log')
-
-    if not log_dir:
-        print('No log selected, code will terminate')
-        input('Press enter to close window')
-        raise SystemExit
-
-    acquiredfoldersdir = "C:\\Users\\csmgi\\NHS\\(Canc) Radiotherapy - PBT Physics Team - PBT Physics Team\\QAandCommissioning\\Gantry 1\\Commissioning\\Data\\Profiles\\Raw Data\\2021_03_10-post-retune-check"
-    # acquiredfoldersdir = eg.diropenbox('Select directory containing all acquired LOGOS folders')
-
-    if not acquiredfoldersdir:
-        print('No folder directory selected, code will terminate')
-        input('Press enter to close window')
-        raise SystemExit
 
     spot_dataset = lm.create_spot_dataset(log_dir, acquiredfoldersdir)
 
@@ -106,8 +89,21 @@ def produce_spot_dict():
 
 
 
+log_dir = "C:\\Users\\csmgi\\Desktop\\Work\\LocalLOGOSkey01.xlsx"
+# log_dir = eg.fileopenbox('Select image acquisition log')
+if not log_dir:
+    print('No log selected, code will terminate')
+    input('Press enter to close window')
+    raise SystemExit
 
-spots = produce_spot_dict()
+acquiredfoldersdir = "C:\\Users\\csmgi\\NHS\\(Canc) Radiotherapy - PBT Physics Team - PBT Physics Team\\QAandCommissioning\\Gantry 1\\Commissioning\\Data\\Profiles\\Raw Data\\2021_03_10-post-retune-check"
+# acquiredfoldersdir = eg.diropenbox('Select directory containing all acquired LOGOS folders')
+if not log_dir:
+    print('No acquisition directory selected, code will terminate')
+    input('Press enter to close window')
+    raise SystemExit
+
+spots = produce_spot_dict(log_dir, acquiredfoldersdir)
 
 for key in spots:
     spots[key].create_fits()
