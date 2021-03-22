@@ -6,6 +6,7 @@ import cv2
 from scipy.ndimage import median_filter
 from PIL import Image
 from astropy.modeling import models, fitting
+import matplotlib.pyplot as plt
 
 
 def image_to_array(my_file, norm=False):
@@ -20,15 +21,6 @@ def image_to_array(my_file, norm=False):
     if norm:
         my_array = np.true_divide(my_array, np.amax(median_filter(my_array, size=2)))
     return my_array
-
-def find_spot(spotarray):
-
-    gray = cv2.cvtColor(spotarray, cv2.COLOR_GRAY2BGR)
-    gray = cv2.GaussianBlur(gray, (21, 21), 0)
-    (minval, maxval, minloc, maxloc) = cv2.minMaxLoc(gray)
-    return maxloc
-
-def crop_spot(spotarray, maxloc):
 
 
 def find_spot(spotarray):
@@ -191,6 +183,12 @@ def adjusted_profiles(rawprofiles, centre, pixeldimensions):
     rawprofiles[0] = [x/pixeldimensions[0] for x in rawprofiles[0]]
     rawprofiles[2] = [x/pixeldimensions[1] for x in rawprofiles[2]]
 
+    profmax = max(rawprofiles[1])
+    rawprofiles[1] = [i/profmax for i in rawprofiles[1]]
+
+    profmax = max(rawprofiles[3])
+    rawprofiles[3] = [i/profmax for i in rawprofiles[3]]
+
     return rawprofiles
 
 
@@ -203,24 +201,25 @@ class Spot:
     '''
     def __init__(self, image_dir, ga=None, rs=None, dist=None, energy=None):
         self.imagearray = image_to_array(image_dir, norm=False)
-        self.spotloc = findspot(self.imagearray)
+        self.spotloc = find_spot(self.imagearray)
         self.cropspot, self.cropspotcentre = cropspot(self.imagearray,
                                                       self.spotloc,
                                                       cutoff=0.5,
                                                       growby=1.8)
         self.pixeldimensions = fetch_pixel_dimensions(image_dir)
         self.output_data = fetch_output_data(image_dir)
-        self.rawcropprofiles = raw_profiles(self.croppedspot,
-                                            self.cropcentre
+        self.rawcropprofiles = raw_profiles(self.cropspot,
+                                            self.cropspotcentre
                                             )
         self.adjustedcropprofiles = adjusted_profiles(self.rawcropprofiles,
-                                                      self.cropcentre,
+                                                      self.cropspotcentre,
                                                       self.pixeldimensions
                                                       )
         self.ga = ga
         self.rs = rs
         self.dist = dist
         self.energy = energy
+        self.normcropspot = None
         self.singlefit = None
         self.singlefitarray = None
         self.doublefit = None
@@ -237,7 +236,7 @@ class Spot:
         singl_gaus_mod = models.Gaussian2D(amplitude=1,
                                            x_mean=0,
                                            y_mean=0,
-                                           bounds={'amplitude': (0.9 * maxpix, 1.1 * maxpix),
+                                           bounds={'amplitude': (0.9, 1.1),
                                                    'theta': (-1.58, 1.58)}
                                            )
 
@@ -247,7 +246,7 @@ class Spot:
                                     sigma_x1=1,
                                     sigma_y1=1,
                                     sigma_x2=20,
-                                    sigma_y2=20
+                                    sigma_y2=20,
                                     bounds={'amplitude': (0.7, 1),
                                             'sigma_x1': (1E-9, 100),
                                             'sigma_y1': (1E-9, 100),
@@ -257,19 +256,21 @@ class Spot:
                                             }
                                     )
 
-        x, y = np.meshgrid(np.arange(0, len(self.imagearray[0])),
-                           np.arange(0, len(self.imagearray))
-                           )
-        x = np.true_divide(x - self.central_pixel[0], self.pixeldimensions[0])
-        y = np.true_divide(y - self.central_pixel[1], self.pixeldimensions[1])
+        xx = np.arange(0, len(self.cropspot[0]))
+        yy = np.arange(0, len(self.cropspot))
 
-        normarray = np.true_divide(self.imagearray, self.imagearray[central_pixel[0]][central_pixel[1]])
+        xx = np.true_divide(xx - self.cropspotcentre[0], self.pixeldimensions[0])
+        yy = np.true_divide(yy - self.cropspotcentre[1], self.pixeldimensions[1])
 
+        x, y = np.meshgrid(xx, yy)
+
+        normarray = np.true_divide(self.cropspot, maxpix)
         print(f'Fitting Single Gaussian for {self.energy}')
-        p1 = fit_p(singl_gaus_mod, x, y, median_filter(normarray, size=2), verblevel=0)
+        p1 = fit_p(singl_gaus_mod, x, y, normarray, verblevel=0)
         print(f'Fitting Double Gaussian for {self.energy}')
-        p2 = fit_p(doubl_gaus_mod, x, y, median_filter(normarray, size=2), verblevel=0)
+        p2 = fit_p(doubl_gaus_mod, x, y, normarray, verblevel=0)
 
+        self.normcropspot = normarray
         self.singlefit = p1
         self.singlefitarray = p1(x,y)
         self.doublefit = p2
@@ -279,7 +280,7 @@ class Spot:
 def create_location_key(acquisitionlog):
     '''Read acquisitionlog into pandas df and perform light edits'''
 
-    location_key = pd.read_excel(acquisitionlog, engine='openpyxl')
+    location_key = pd.read_excel(acquisitionlog)
     location_key['Image'] = [str(int(i)).zfill(8) for i in location_key['Image']]
     location_key['Collated Number'] = [str(int(i)).zfill(8) for i in location_key['Collated Number']]
 
@@ -297,7 +298,7 @@ def create_spot_dataset(acquisitionlog, acquiredfoldersdir):
     for index, row in spot_dataset.iterrows():
         print(f'Row {index+1} of {len(spot_dataset)}')
         image_folder = row['Folder']
-        image_name = row['Image'] + '.tif'
+        image_name = row['Image'] + '.bmp'
 
         src = os.path.join(acquiredfoldersdir, image_folder)
 
