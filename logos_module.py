@@ -51,6 +51,20 @@ def cropspot(spotarray, maxloc, cutoff, growby = 1):
     yindext = int(maxloc[1] - (maxloc[1] - yindext) * growby)
     yindexb = int(maxloc[1] + (yindexb - maxloc[1]) * growby)
 
+    if xindexl < 0:
+        xindexl = 0
+        print('Fit cropped to left edge of field')
+    if xindexr > len(normarray[0]):
+        xindexr = len(normarray[0])
+        print('Fit cropped to right edge of field')
+    if yindext < 0:
+        yindext = 0
+        print('Fit cropped to top edge of field')
+    if yindexb > len(normarray):
+        yindexb = len(normarray)
+        print('Fit cropped to bottom edge of field')
+
+
     croppedarray = spotarray[yindext:yindexb, xindexl:xindexr]
     maxpix = [maxloc[0]-xindexl, maxloc[1]-yindext]
 
@@ -205,7 +219,7 @@ class Spot:
         self.cropspot, self.cropspotcentre = cropspot(self.imagearray,
                                                       self.spotloc,
                                                       cutoff=0.5,
-                                                      growby=1.8)
+                                                      growby=4)
         self.pixeldimensions = fetch_pixel_dimensions(image_dir)
         self.output_data = fetch_output_data(image_dir)
         self.rawcropprofiles = raw_profiles(self.cropspot,
@@ -236,11 +250,11 @@ class Spot:
         singl_gaus_mod = models.Gaussian2D(amplitude=1,
                                            x_mean=0,
                                            y_mean=0,
-                                           bounds={'amplitude': (0.9, 1.1),
-                                                   'theta': (-1.58, 1.58)}
+                                           bounds={'amplitude': (0.9, 1),
+                                                   'theta': (0, 0)}
                                            )
 
-        doubl_gaus_mod = doubl_gaus(amplitude=0.9,
+        doubl_gaus_mod = doubl_gaus(amplitude=0.8,
                                     x_mean=0,
                                     y_mean=0,
                                     sigma_x1=1,
@@ -252,7 +266,7 @@ class Spot:
                                             'sigma_y1': (1E-9, 100),
                                             'sigma_x2': (1, 100),
                                             'sigma_y2': (1, 100),
-                                            'theta': (-1.58, 1.58)
+                                            'theta': (0, 0)
                                             }
                                     )
 
