@@ -180,8 +180,8 @@ def plot_fits(spots, ga, rs, dist):
         os.remove(temp_dir+'\\'+file)
     os.rmdir(temp_dir)
 
-log_dir = "C:\\Users\\cgillies.UCLH\\Desktop\\LOGOS_Analysis\\Profiles_File_Key.xlsx"
-# log_dir = eg.fileopenbox('Select image acquisition log')
+# log_dir = "C:\\Users\\cgillies.UCLH\\Desktop\\LOGOS_Analysis\\Profiles_File_Key.xlsx"
+log_dir = eg.fileopenbox('Select image acquisition log')
 if not log_dir:
     print('No log selected, code will terminate')
     input('Press enter to close window')

@@ -4,13 +4,13 @@ import shutil
 import datetime
 import easygui as eg
 
-xlsxfile = 'C:\\Users\\csmgi\\Desktop\\Work\\Coding\\Test-Data\\LOGOS\\__OnTheFly__\\2021_03_16_Profiles.xlsx'
+xlsxfile = 'C:\\Users\\cgillies.UCLH\\Desktop\\LOGOS_Analysis\\Profiles_File_Key_Local.xlsx'
 # xlsxfile = eg.fileopenbox('Select excel file with image location details')
 
-# logosdir = 'C:\\Users\\csmgi\\Desktop\\Work\\Coding\\Test-Results\\Gantry 270'
-logosdir = eg.diropenbox('Select folder destination for all spots')
+logosdir = 'C:\\Users\\cgillies.UCLH\\Desktop\\LOGOS_Analysis\\Analysis_Folder'
+# logosdir = eg.diropenbox('Select folder destination for all spots')
 
-allfoldersdir = 'C:\\Users\\csmgi\\NHS\\(Canc) Radiotherapy - PBT Physics Team - PBT Physics Team\\QAandCommissioning\\Gantry 1\\Commissioning\\Data\\Profiles\\Raw Data\\2021_03_16_XRV3000'
+allfoldersdir = 'C:\\Users\\cgillies.UCLH\\NHS\\(Canc) Radiotherapy - PBT Physics Team - PBT Physics Team\\QAandCommissioning\\Gantry 1\\Commissioning\\Data\\Profiles\\Raw Data\\2021_03_16_XRV3000'
 # allfoldersdir = eg.diropenbox('Select dir containing all capture folders')
 
 
@@ -52,7 +52,7 @@ class Output:
             self.spots_quality[i] = float(full_data[row][27])
 
 
-location_key = pd.read_excel(xlsxfile, engine='openpyxl')
+location_key = pd.read_excel(xlsxfile)
 
 # print(location_key)
 
@@ -68,8 +68,8 @@ while copyfiles.lower() not in ['y', 'n']:
     copyfiles = input("Please enter 'y' or 'n':")
 
 for index, row in location_key.iterrows():
-    folder = row['Folder']
-    image_name = row['Image'] + '.bmp'
+    folder = row['Folder'].strip()
+    image_name = row['Image'].strip() + '.bmp'
     dist = row['Distance']
     RS = row['RS']
     GA = row['GA']
