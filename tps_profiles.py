@@ -187,8 +187,8 @@ if not log_dir:
     input('Press enter to close window')
     raise SystemExit
 
-acquiredfoldersdir = "C:\\Users\\cgillies.UCLH\\Desktop\\LOGOS_Analysis"
-    # acquiredfoldersdir = eg.diropenbox('Select directory containing all acquired LOGOS folders')
+# acquiredfoldersdir = "C:\\Users\\cgillies.UCLH\\Desktop\\LOGOS_Analysis"
+acquiredfoldersdir = eg.diropenbox('Select directory containing all acquired LOGOS folders')
 if not acquiredfoldersdir:
     print('No acquisition directory selected, code will terminate')
     input('Press enter to close window')
