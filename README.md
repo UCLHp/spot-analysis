@@ -6,23 +6,31 @@ detector
 
 Currently a non-working version
 
-# logos_module.py
+## logos_module.py
 
 A script containing various functions that are used in both the spot qa and
 commissioning scripts
 
-# spot_commissioning.py
+## tps_profiles.py
+
+Script to convert single spot images acquired using the LOGOS3000 or 4000 into
+numpy array - astropy is then used to fit a single and double Gaussian in 2D.
+Plots along the central axis are saved in an excel workbook with linear and log
+scale and a difference image between the 2D fit and the raw image values is
+included  
+
+## spot_commissioning.py - SUPERCEDED
 
 A script that converts a folder of raw acquired images in tiff file format into
 an excel spreadsheet containing fitted plots to enter into a treatment planning
 system software
 
-# spot_qa
+## spot_qa
 
 A script for ongoing qa that will analyse a predefined grid of spots and write
 the results to an access database
 
-# Components
+## Components
 
 README.md
 .gitignore
@@ -31,19 +39,11 @@ logos_module.py
 spot_commissioning.py
 spot_qa.py
 
-# Installation
+## Installation
 
 Do not install, please use latest version of the executable when available
 
-# Requirements
-
-***to be updated on first release!***
-
-tifffile
-numpy
-easygui
-
-# Risk Assessment
+## Risk Assessment
 
 | Risk | Solution |
 | ----------- | ----------- |
@@ -52,23 +52,23 @@ easygui
 | If QA tests fail incorrectly - this may add time troubleshooting on set | All QA tests should be independently checked |
 
 
-# Tests
+## Tests
 
 No tests currently included
 Perhaps a test with a known data set - ensure consistant output.
 
-# Usage
+## Usage
 
 Acquire images and save into a directory along with the active script which
 provides the pixel resolution
 run the code and navigate to this directory.
 ***Choose a location to save the results***
 
-# Limitations / Known Bugs
+## Limitations / Known Bugs
 
 Currently only works for tifffiles
 
-# Contribute
+## Contribute
 
 Pull requests are welcome.  
 For major changes, please open a ticket first to discuss desired changes:  
@@ -76,13 +76,13 @@ For major changes, please open a ticket first to discuss desired changes:
 
 If making changes, please check all tests and add if required.
 
-# Licence
+## Licence
 
 All code within this package distributed under [GNU GPL-3.0 (or higher)](https://opensource.org/licenses/GPL-3.0).
 
 Full license text contained within the file LICENCE.
 
-# (C) License for all programmes
+## (C) License for all programmes
 
 ```
 ###  Copyright (C) 2020:  Callum Stuart Main Gillies
