@@ -3,6 +3,7 @@ import datetime
 
 import easygui as eg
 import pypyodbc
+import matplotlib.pyplot as plt
 
 import logos_module as lm
 # import test.test_version
@@ -39,6 +40,7 @@ class Output:
             self.spots_diameter[i] = full_data[row][25]
             self.spots_quality[i] = full_data[row][27]
 
+def find_circles(image_array):
 
 
 DATABASE_DIR = 'O:\\protons\\Work in Progress\\Callum\\AccessDatabase\\AssetsDatabase_beCG.accdb'
@@ -84,36 +86,54 @@ if not gantry:
 print(f'Gantry = {gantry}\n')
 
 # User selects directory containing all acquired spot grid energies
-dir = eg.diropenbox('Select Folders Containing Acquired Images '
+mydir = eg.diropenbox('Select Folders Containing Acquired Images '
                     'For All Acquired Energies')
 
-# Check to ensure number of energies defined matches the number of images
-if not len(energies) == len(os.listdir(dir)):
-    eg.msgbox('Number of files in directory does not match number of Energies '
-              'selected\nPlease re-run the program', 'File Count Error')
-    raise SystemExit
-
-if not dir:
+# Check directory has been selected
+if not mydir:
     eg.msgbox('Please re-run the code and select a folder containing the data'
               ' to be analysed', title='Folder Selection Error')
     raise SystemExit
 
-# Loop to populate output dictionary from LOGOS output files
+# Check to ensure number of energies defined matches the number of images
+if not len(energies) == len(os.listdir(mydir)):
+    eg.msgbox('Number of files in directory does not match number of Energies '
+    'selected\nPlease re-run the program', 'File Count Error')
+    raise SystemExit
+
+# Loop to populate output and image dictionary from LOGOS output files
 spot_properties = {}
+image_arrays = {}
 count = 0
-for foldername in sorted(os.listdir(dir)):
-    if not os.path.isfile(os.path.join(os.path.join(dir, foldername),
+for foldername in sorted(os.listdir(mydir)):
+    # Check active script is present
+    if not os.path.isfile(os.path.join(os.path.join(mydir, foldername),
                                        'activescript.txt')):
         eg.msgbox(f"Folder {foldername} Doesn't contain the activescript "
                   "file required to calculate the image resolution")
         raise SystemExit
-    if not os.path.isfile(os.path.join(os.path.join(dir, foldername),
+    # Check output file is present
+    if not os.path.isfile(os.path.join(os.path.join(mydir, foldername),
                                        'output.txt')):
         eg.msgbox(f"Folder {foldername} Doesn't contain the output file "
                   "required for the spot data")
         raise SystemExit
-    output = os.path.join(os.path.join(dir, foldername), 'output.txt')
+    # Distinguish between tif and bmp files
+    for i in os.listdir(os.path.join(mydir,foldername)):
+        if i.endswith('tif'):
+            filename = '00000001.tif'
+            break
+        if i.endswith('bmp'):
+            filename = '00000001.bmp'
+            break
+    if not filename:
+        input('No image file detected')
+        raise SystemExit
+    output = os.path.join(os.path.join(mydir, foldername), 'output.txt')
+    gridimage = os.path.join(os.path.join(mydir, foldername), filename)
+    activescript = lm.fetch_pixel_dimensions(gridimage)
     spot_properties[energies[count]] = Output(output)
+    image_arrays[energies[count]] = lm.image_to_array(gridimage)
     count+=1
 
 ###############################################################################
@@ -137,3 +157,11 @@ for x in energies:
     print('Spot Circularity:')
     print(spot_properties[x].spots_quality)
     print()
+
+
+
+cropped, maxpix = lm.cropspot(image_arrays[energies[0]], [440,200], 0.5, 2)
+
+
+plt.imshow(cropped)
+plt.show()
