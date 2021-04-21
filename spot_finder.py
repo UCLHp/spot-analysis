@@ -60,6 +60,38 @@ def fwhm_fetch(profile):
     return fwhm
 
 
+class ActiveScript:
+    def __init__(self, image_dir):
+        actscr_loc = os.path.join(os.path.dirname(image_dir),
+                                  'activescript.txt')
+        for line in open(actscr_loc, 'r'):
+            if line.startswith('CameraHRa'):
+                CameraHRatio = float(line.split("=")[1].strip())
+            if line.startswith('CameraVRa'):
+                CameraVRatio = float(line.split("=")[1].strip())
+            if line.startswith('AppXCenter'):
+                AppXCenter = float(line.split("=")[1].strip())
+            if line.startswith('AppYCenter'):
+                AppYCenter = float(line.split("=")[1].strip())
+            if line.startswith('TextPath'):
+                if '3' in line:
+                    self.device = '3000'
+                if '4' in line:
+                    self.device = '4000'
+                else:
+                    self.device = 'Unknown'
+        if self.device == '4000':
+            self.CameraHRatio = CameraVRatio
+            self.CameraVRatio = CameraHRatio
+            self.AppXCenter = AppYCenter
+            self.AppYCenter = AppXCenter
+        else:
+            self.CameraHRatio = CameraHRatio
+            self.CameraVRatio = CameraVRatio
+            self.AppXCenter = AppXCenter
+            self.AppYCenter = AppYCenter
+
+
 class Profile:
     def __init__(self, profile):
         self.lgrad, self.rgrad = gradient_fetch(profile, 0.2, 0.8)
@@ -68,8 +100,9 @@ class Profile:
     def __str__(self):
         return f'lgrad: {self.lgrad}, rgrad: {self.rgrad}, fwhm: {self.fwhm}'
 
+
 class Spot:
-    def __init__(self, spot_array, pixel_loc):
+    def __init__(self, spot_array, pixel_loc, activescript):
         self.pixel_loc = pixel_loc
         horprof, vertprof, tl_br, bl_tr = spot_to_profiles(spot_array)
 
@@ -78,8 +111,18 @@ class Spot:
         self.tl_br = Profile(tl_br)
         self.bl_tr = Profile(bl_tr)
 
+        x = self.pixel_loc[0] - activescript.AppXCenter
+        y = self.pixel_loc[1] - activescript.AppYCenter
+        x = x / activescript.CameraHRatio
+        y = y / activescript.CameraVRatio
+
+        self.rel_pixel_loc = [x, y]
+
     def __str__(self):
-        return f'horprof: {self.horprof}\nvertprof: {self.vertprof}\ntl_br: {self.tl_br}\n bl_tr: {self.bl_tr}\n'
+        return f'horprof: {self.horprof}\nvertprof: {self.vertprof}\n'\
+               f'tl_br: {self.tl_br}\n bl_tr: {self.bl_tr}\n'\
+               f'pixel_loc: {self.pixel_loc}\n'\
+               f'rel_pixel_loc: {self.rel_pixel_loc}\n'
 
 
 
@@ -87,10 +130,16 @@ class Spot:
 def image_open_blur():
     global original
     global blurred
-
+    global activescript
     # read image
     image_path = easygui.fileopenbox("Please pick a spot image :")
+    activescript = ActiveScript(image_path)
+
     original = cv2.imread(image_path)
+
+    if activescript.device == '4000':
+        original = cv2.rotate(original, cv2.ROTATE_90_COUNTERCLOCKWISE)
+
     print("\nImage dimensions are", original.shape)
 
     # for repetitive testing purposes
@@ -134,7 +183,7 @@ def image_processing_plotting(threshold, specificity, max_detection_size, neares
                                param1=50, param2=specificity, minRadius=0, maxRadius=int(max_detection_size))
 
     # Order spots by grid position, y is rounded to nearest 10 to enable sort
-    circles = np.asarray(sorted(circles[0], key=lambda k: [round(k[1], -1), k[0]]))
+    circles = np.asarray(sorted(circles[0], key=lambda k: [int(round(k[1], -2)), int(k[0])]))
     # Need to expand dimensions to match previous data structure
     circles = np.expand_dims(circles, axis=0)
     # create a copy of the original image to be circled
@@ -209,7 +258,7 @@ def image_reprocessing_plotting(val):
                                maxRadius=int(max_detection_size)
                                )
     # Order spots by grid position, y is rounded to nearest 10 to enable sort
-    circles = np.asarray(sorted(circles[0], key=lambda k: [round(k[1], -1), k[0]]))
+    circles = np.asarray(sorted(circles[0], key=lambda k: [round(k[1], -2), k[0]]))
     # Need to expand dimensions to match previous data structure
     circles = np.expand_dims(circles, axis=0)
 
@@ -297,11 +346,12 @@ def extract(val):
             # crop
             crop_img = original[y1:y2, x1:x2]
 
-            spot_data[i] = Spot(crop_img[:,:,0], [x,y])
+            spot_data[i] = Spot(crop_img[:,:,0], [x,y], activescript)
             # horprof, vertprof, tl_br, bl_tr = spot_to_profiles(crop_img[:,:,0])
             # fwhm = fwhm_fetch(horprof)
             # gradients = gradient_fetch(horprof, 0.2, 0.8)
             # print(f'fwhm for {i} is {fwhm}, lgrad is {gradients[0]}, rgrad is {gradients[1]}')
+            print(i)
             print(spot_data[i])
             # cv2.imwrite((save_path+"\\" + str(i)+".tiff"), crop_img)
         # os.startfile(save_path)
@@ -310,6 +360,10 @@ def extract(val):
 def load_new(val):
    image_open_blur()
    image_processing_plotting(threshold, specificity, max_detection_size, nearest_circles, scaling, font_size)
+
+
+# myfile = easygui.fileopenbox()
+# print(fetch_pixel_dimensions(myfile))
 
 
 image_open_blur()
