@@ -9,6 +9,38 @@ from astropy.modeling import models, fitting
 import matplotlib.pyplot as plt
 
 
+class ActiveScript:
+    def __init__(self, image_dir):
+        actscr_loc = os.path.join(os.path.dirname(image_dir),
+                                  'activescript.txt')
+        for line in open(actscr_loc, 'r'):
+            if line.startswith('CameraHRa'):
+                CameraHRatio = float(line.split("=")[1].strip())
+            if line.startswith('CameraVRa'):
+                CameraVRatio = float(line.split("=")[1].strip())
+            if line.startswith('AppXCenter'):
+                AppXCenter = float(line.split("=")[1].strip())
+            if line.startswith('AppYCenter'):
+                AppYCenter = float(line.split("=")[1].strip())
+            if line.startswith('TextPath'):
+                if '3' in line:
+                    self.device = '3000'
+                if '4' in line:
+                    self.device = '4000'
+                else:
+                    self.device = 'Unknown'
+        if self.device == '4000':
+            self.CameraHRatio = CameraVRatio
+            self.CameraVRatio = CameraHRatio
+            self.AppXCenter = AppYCenter
+            self.AppYCenter = AppXCenter
+        else:
+            self.CameraHRatio = CameraHRatio
+            self.CameraVRatio = CameraVRatio
+            self.AppXCenter = AppXCenter
+            self.AppYCenter = AppYCenter
+
+
 def image_to_array(my_file, norm=False):
     '''Read image data into numpy array
 
@@ -128,9 +160,9 @@ def fetch_pixel_dimensions(image_dir):
     # Extract pixel dimension data from Active Script file
     for line in open(actscr_loc, 'r'):
         if line.startswith('CameraHRa'):
-            CameraHRatio = float(line[15:])
+            CameraHRatio = float(line.split("=")[1].strip())
         if line.startswith('CameraVRa'):
-            CameraVRatio = float(line[15:])
+            CameraVRatio = float(line.split("=")[1].strip())
 
     return[CameraHRatio, CameraVRatio]
 
