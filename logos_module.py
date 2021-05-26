@@ -440,7 +440,7 @@ def central_xy_profiles(array, center, resolution=[1, 1]):
 
 
 
-def uniformity_ROI(uniformity_array, threshold=0.5):
+def uniformity_ROI(uniformity_array, threshold=0.5, inner_reg=0.8):
     '''Returns central region of rectangular field and image for reference
 
             Parameters:
@@ -457,10 +457,10 @@ def uniformity_ROI(uniformity_array, threshold=0.5):
     width = max(area_above_thresh[1]) - min(area_above_thresh[1])
     height = max(area_above_thresh[0]) - min(area_above_thresh[0])
 
-    left80 = int(min(area_above_thresh[0]) + 0.1 * width)
-    right80 = int(min(area_above_thresh[0]) + 0.9 * width)
-    top80 = int(min(area_above_thresh[1]) + 0.1 * height)
-    bottom80 = int(min(area_above_thresh[1]) + 0.9 * height)
+    left80 = int(min(area_above_thresh[0]) + (1-inner_reg) * width)
+    right80 = int(min(area_above_thresh[0]) + inner_reg * width)
+    top80 = int(min(area_above_thresh[1]) + 1-inner_reg * height)
+    bottom80 = int(min(area_above_thresh[1]) + inner_reg * height)
 
     ROI_display = np.copy(uniformity_array)
     ROI_display[top80, left80:right80] = 0
