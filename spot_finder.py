@@ -23,19 +23,22 @@ def rotate_image(array, angle, pivot):
     # further info here: https://stackoverflow.com/questions/25458442/rotate-a-2d-image-around-specified-origin-in-python
 
 
-def spot_to_profiles(myimage):
+def spot_to_profiles(myimage, activescript):
     '''Extract cartesian and diagonal profiles from spot array'''
     blurred = cv2.GaussianBlur(myimage, (11, 11), 0)
     normed = blurred/blurred.max()
 
     (min_val, max_val, min_loc, max_loc) = cv2.minMaxLoc(blurred)
-    horprof = normed[max_loc[1]]
-    vertprof = [x[max_loc[0]] for x in normed]
+    horprof = [range(len(normed[0])), normed[max_loc[1]]]
+    vertprof = [range(len(normed)), [x[max_loc[0]] for x in normed]]
     spin_ccw = rotate_image(normed, 45, max_loc)
     spin_cw = rotate_image(normed, -45, max_loc)
-    tl_br = spin_ccw[max_loc[1]]  # Top left to bottom right profile
-    bl_tr = spin_cw[max_loc[1]]  # Bottom left to top right profile
-
+    # Top left to bottom right profile
+    tl_br = [range(len(spin_ccw[0])), spin_ccw[max_loc[1]]]
+    # Bottom left to top right profile
+    bl_tr = [range(len(spin_cw[0])), spin_cw[max_loc[1]]]
+    horprof[0] = horprof[0]*activescript.CameraHRatio
+    vertprof[0] = vertprof[0]*activescript.CameraVRatio
     return horprof, vertprof, tl_br, bl_tr
 
 
@@ -43,20 +46,20 @@ def gradient_fetch(profile, lowthresh, highthresh):
     '''Takes a gaussian profile as input and returns the gradient on the left
     and right side of the peak between the high threshold and low threshold
     '''
-    left_low = [n for n, i in enumerate(profile) if i > lowthresh][0]
-    right_low = [n for n, i in enumerate(profile) if i > lowthresh][-1]
-    left_high = [n for n, i in enumerate(profile) if i > highthresh][0]
-    right_high = [n for n, i in enumerate(profile) if i > highthresh][-1]
-    lgrad = 100*(highthresh-lowthresh)/(left_high-left_low)
-    rgrad = 100*(highthresh-lowthresh)/(right_high-right_low)
+    left_low = [n for n, i in enumerate(profile[1]) if i > lowthresh][0]
+    right_low = [n for n, i in enumerate(profile[1]) if i > lowthresh][-1]
+    left_high = [n for n, i in enumerate(profile[1]) if i > highthresh][0]
+    right_high = [n for n, i in enumerate(profile[1]) if i > highthresh][-1]
+    lgrad = 100*(highthresh-lowthresh)/(profile[0][left_high] - profile[0][left_low])
+    rgrad = 100*(highthresh-lowthresh)/(profile[0][right_high] - profile[0][right_low])
     return lgrad, rgrad
 
 
 def fwhm_fetch(profile):
     '''Returns FWHM for a gaussian profile'''
-    fwhml = [n for n, i in enumerate(profile) if i > 0.5][0]
-    fwhmr = [n for n, i in enumerate(profile) if i > 0.5][-1]
-    fwhm = fwhmr-fwhml
+    fwhml = [n for n, i in enumerate(profile[1]) if i > 0.5][0]
+    fwhmr = [n for n, i in enumerate(profile[1]) if i > 0.5][-1]
+    fwhm = profile[0][fwhmr]-profile[0][fwhml]
     return fwhm
 
 
