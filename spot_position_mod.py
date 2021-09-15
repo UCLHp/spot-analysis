@@ -2,8 +2,10 @@ import datetime
 import numpy as np
 from scipy import ndimage
 import os
-import cv2
 
+import cv2
+import easygui as eg
+import openpyxl
 
 def rotate_image(array, angle, pivot):
     '''Function to rotate an array CCW a given angle around a defined axis
@@ -35,10 +37,11 @@ class ActiveScript:
             if line.startswith('TextPath'):
                 if '3' in line:
                     self.device = '3000'
-                if '4' in line:
+                elif '4' in line:
                     self.device = '4000'
                 else:
                     self.device = 'Unknown'
+
         if self.device == '4000':
             self.CameraHRatio = CameraVRatio
             self.CameraVRatio = CameraHRatio
@@ -120,6 +123,15 @@ class Spot:
                f'pixel_loc: {self.pixel_loc}\n'\
                f'rel_pixel_loc: {self.rel_pixel_loc}\n'
 
+    def list_results(self):
+        result = [self.rel_pixel_loc[0], self.rel_pixel_loc[1],
+                  self.horprof.lgrad, self.horprof.rgrad, self.horprof.fwhm,
+                  self.vertprof.lgrad, self.vertprof.rgrad, self.vertprof.fwhm,
+                  self.bl_tr.lgrad, self.bl_tr.rgrad, self.bl_tr.fwhm,
+                  self.tl_br.lgrad, self.tl_br.rgrad, self.tl_br.fwhm]
+        result = [float(i) for i in result]
+        return result
+
 
 class SpotPattern:
     '''Class to define spot pattern images acquired using the flat LOGOS panels
@@ -140,6 +152,8 @@ class SpotPattern:
         self.path = image_path
         self.activescriptpath = os.path.join(image_dir, 'activescript.txt')
         self.activescript = ActiveScript(self.activescriptpath)
+        self.outputpath = os.path.join(image_dir, 'output.txt')
+        self.output = Output(self.outputpath)
         self.image = cv2.imread(image_path)
 
         if self.activescript.device == '4000':
@@ -194,6 +208,41 @@ def fwhm_fetch(profile):
     fwhmr = [n for n, i in enumerate(norm_profile[1]) if i > 0.5][-1]
     fwhm = profile[0][fwhmr]-profile[0][fwhml]
     return fwhm
+
+
+def select_acquisition_info():
+    gantry = eg.choicebox('Please select room',
+                          'Gantry',
+                          ['Gantry 1', 'Gantry 2',
+                           'Gantry 3', 'Gantry 4'
+                           ]
+                          )
+
+    energy = eg.integerbox(msg='Energy',
+                           title='Select energy of acquired image',
+                           lowerbound=70,
+                           upperbound=245
+                           )
+    gantry_angle = eg.integerbox(msg='Gantry Angle',
+                                 title='Select angle of acquisition',
+                                 lowerbound=0,
+                                 upperbound=360
+                                 )
+    operators = ['AB', 'AK', 'AGo', 'AGr', 'AM', 'AJP', 'AT', 'AW',
+                 'CB', 'CG', 'KC', 'PI', 'SC', 'SG', 'TNC', 'VMA', 'VR']
+
+    operator = eg.choicebox('Select Operator',
+                            'Operator',
+                            operators
+                            )
+    return [gantry, energy, gantry_angle, operator]
+
+
+def write_to_results_wb(results_loc, results):
+    wb = openpyxl.load_workbook(results_loc)
+    ws = wb.worksheets[0]
+    ws.append(results)
+    wb.save(results_loc)
 
 # output = Output('C:\\Users\\cgillies.UCLH\\Desktop\\Coding\\Test_Data\\LOGOS\\Spot_Grids\\2021_0309_0045\\00000001.tif')
 # print(output.datetime)

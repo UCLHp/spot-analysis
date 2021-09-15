@@ -5,12 +5,27 @@ from matplotlib.widgets import Button
 
 import cv2
 import easygui as eg
+import openpyxl
 
 import spot_position_mod as spm
 
 # global variables are used inside the functions because slider.on_changed
 # and button.on_clicked are not allowing arguments in called functions
 
+results_loc = 'C:\\Users\\cgillies.UCLH\\NHS\\(Canc) Radiotherapy - PBT Physics Team - PBT Physics Team\\QAandCommissioning\\Routine QA\\Spot Position\\SpotGrid_Delivered_Results.xlsx'
+
+SPOTSIN3000 = ['Top-Left', 'Top-Centre', 'Top-Right',
+               'Left', 'Centre', 'Right',
+               'Bottom-Left', 'Bottom-Centre', 'Bottom-Right'
+               ]
+
+SPOTSIN4000 = ['Top-Top-Left', 'Top-Top-Centre', 'Top-Top-Right',
+               'Top-Left', 'Top-Centre', 'Top-Right',
+               'Left', 'Centre', 'Right',
+               'Bottom-Left', 'Bottom-Centre', 'Bottom-Right',
+               'Bottom-Bottom-Left', 'Bottom-Bottom-Centre',
+               'Bottom-Bottom-Right'
+               ]
 
 def image_open_blur():
     '''Opens full image, converts to greyscale and adds blur
@@ -18,11 +33,12 @@ def image_open_blur():
     global original
     global blurred
     global activescript
+    global output
 
     image_path = eg.fileopenbox("Please pick a spot image :")
     activescript = spm.ActiveScript(image_path)
     spotpattern = spm.SpotPattern(image_path)
-
+    output = spm.Output(image_path)
     original = spotpattern.image
 
     print("\nImage dimensions are", original.shape)
@@ -224,13 +240,36 @@ def extract(val):
             crop_img = original[y1:y2, x1:x2]
 
             spot_data[i] = spm.Spot(crop_img[:, :, 0], [x, y], activescript)
-            # print(i)
-            # print(spot_data[i])
+            print(i)
+            print(spot_data[i])
         write_to_excel = eg.boolbox('Do you want to save to excel?',
                                     title='Option to write data'
                                     )
         if write_to_excel:
-            print('yes')
+            # print('yes')
+            list_to_write = [output.datetime]
+            list_to_write.extend(spm.select_acquisition_info())
+            print(activescript.device)
+            list_to_write.append(float(activescript.device))
+
+            # print(f'list to write {list_to_write}')
+            wb = openpyxl.load_workbook(results_loc)
+            ws = wb.worksheets[0]
+            for i in spot_data:
+                if activescript.device == '3000':
+                    line = list_to_write + [SPOTSIN3000[i-1]]
+                if activescript.device == '4000':
+                    line = list_to_write + [SPOTSIN4000[i-1]]
+                result = spot_data[i].list_results()
+                line = line + result
+                ws.append(line)
+            wb.save(results_loc)
+            test = input('Values saved, press enter to continue or C to close')
+            if test == 'C':
+                raise SystemExit
+
+
+            # ]
 
             # cv2.imwrite((save_path+"\\" + str(i)+".tiff"), crop_img)
         # os.startfile(save_path)
