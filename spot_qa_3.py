@@ -224,10 +224,14 @@ def extract(val):
             crop_img = original[y1:y2, x1:x2]
 
             spot_data[i] = spm.Spot(crop_img[:, :, 0], [x, y], activescript)
-            print(i)
-            print(spot_data[i])
-        # write_to_excel = eg.boolbox('Do you want to save to excel?')
-        # if choice
+            # print(i)
+            # print(spot_data[i])
+        write_to_excel = eg.boolbox('Do you want to save to excel?',
+                                    title='Option to write data'
+                                    )
+        if write_to_excel:
+            print('yes')
+
             # cv2.imwrite((save_path+"\\" + str(i)+".tiff"), crop_img)
         # os.startfile(save_path)
 
