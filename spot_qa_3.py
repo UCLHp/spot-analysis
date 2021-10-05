@@ -12,7 +12,9 @@ import spot_position_mod as spm
 # global variables are used inside the functions because slider.on_changed
 # and button.on_clicked are not allowing arguments in called functions
 
-results_loc = 'C:\\Users\\cgillies.UCLH\\NHS\\(Canc) Radiotherapy - PBT Physics Team - PBT Physics Team\\QAandCommissioning\\Routine QA\\Spot Position\\SpotGrid_Delivered_Results.xlsx'
+# results_loc = 'C:\\Users\\cgillies.UCLH\\NHS\\(Canc) Radiotherapy - PBT Physics Team - PBT Physics Team\\QAandCommissioning\\Routine QA\\Spot Position\\SpotGrid_Delivered_Results.xlsx'
+results_loc = eg.fileopenbox('Please select the results file on sharepoint - \n'
+                             'Located in Routine QA/Spot Position')
 
 SPOTSIN3000 = ['Top-Left', 'Top-Centre', 'Top-Right',
                'Left', 'Centre', 'Right',
