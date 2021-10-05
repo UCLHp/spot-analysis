@@ -294,7 +294,7 @@ class Spot:
 def create_location_key(acquisitionlog):
     '''Read acquisitionlog into pandas df and perform light edits'''
 
-    location_key = pd.read_excel(acquisitionlog)
+    location_key = pd.read_excel(acquisitionlog, engine='openpyxl')
     location_key['Image'] = [str(int(i)).zfill(8) for i in location_key['Image']]
     location_key['Collated Number'] = [str(int(i)).zfill(8) for i in location_key['Collated Number']]
 
