@@ -9,6 +9,38 @@ from astropy.modeling import models, fitting
 import matplotlib.pyplot as plt
 
 
+class ActiveScript:
+    def __init__(self, image_dir):
+        actscr_loc = os.path.join(os.path.dirname(image_dir),
+                                  'activescript.txt')
+        for line in open(actscr_loc, 'r'):
+            if line.startswith('CameraHRa'):
+                CameraHRatio = float(line.split("=")[1].strip())
+            if line.startswith('CameraVRa'):
+                CameraVRatio = float(line.split("=")[1].strip())
+            if line.startswith('AppXCenter'):
+                AppXCenter = float(line.split("=")[1].strip())
+            if line.startswith('AppYCenter'):
+                AppYCenter = float(line.split("=")[1].strip())
+            if line.startswith('TextPath'):
+                if '3' in line:
+                    self.device = '3000'
+                if '4' in line:
+                    self.device = '4000'
+                else:
+                    self.device = 'Unknown'
+        if self.device == '4000':
+            self.CameraHRatio = CameraVRatio
+            self.CameraVRatio = CameraHRatio
+            self.AppXCenter = AppYCenter
+            self.AppYCenter = AppXCenter
+        else:
+            self.CameraHRatio = CameraHRatio
+            self.CameraVRatio = CameraVRatio
+            self.AppXCenter = AppXCenter
+            self.AppYCenter = AppYCenter
+
+
 def image_to_array(my_file, norm=False):
     '''Read image data into numpy array
 
@@ -128,9 +160,9 @@ def fetch_pixel_dimensions(image_dir):
     # Extract pixel dimension data from Active Script file
     for line in open(actscr_loc, 'r'):
         if line.startswith('CameraHRa'):
-            CameraHRatio = float(line[15:])
+            CameraHRatio = float(line.split("=")[1].strip())
         if line.startswith('CameraVRa'):
-            CameraVRatio = float(line[15:])
+            CameraVRatio = float(line.split("=")[1].strip())
 
     return[CameraHRatio, CameraVRatio]
 
@@ -408,7 +440,7 @@ def central_xy_profiles(array, center, resolution=[1, 1]):
 
 
 
-def uniformity_ROI(uniformity_array, threshold=0.5):
+def uniformity_ROI(uniformity_array, threshold=0.5, inner_reg=0.8):
     '''Returns central region of rectangular field and image for reference
 
             Parameters:
@@ -425,10 +457,10 @@ def uniformity_ROI(uniformity_array, threshold=0.5):
     width = max(area_above_thresh[1]) - min(area_above_thresh[1])
     height = max(area_above_thresh[0]) - min(area_above_thresh[0])
 
-    left80 = int(min(area_above_thresh[0]) + 0.1 * width)
-    right80 = int(min(area_above_thresh[0]) + 0.9 * width)
-    top80 = int(min(area_above_thresh[1]) + 0.1 * height)
-    bottom80 = int(min(area_above_thresh[1]) + 0.9 * height)
+    left80 = int(min(area_above_thresh[0]) + (1-inner_reg) * width)
+    right80 = int(min(area_above_thresh[0]) + inner_reg * width)
+    top80 = int(min(area_above_thresh[1]) + 1-inner_reg * height)
+    bottom80 = int(min(area_above_thresh[1]) + inner_reg * height)
 
     ROI_display = np.copy(uniformity_array)
     ROI_display[top80, left80:right80] = 0

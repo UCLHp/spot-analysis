@@ -72,12 +72,12 @@ def produce_spot_dict(log_dir, acquiredfoldersdir):
 
     dist_list = rs_subdf.Distance.unique()
     dist = eg.choicebox("Select Distance", "Distance from Iso", dist_list)
-    subdf = rs_subdf.loc[rs_subdf['Distance'] == int(dist)]
+    subdf = rs_subdf.loc[rs_subdf['Distance'] == int(float(dist))]
 
     spots = {}
     for index, row in subdf.iterrows():
         folder = row['Folder']
-        image_name = row['Image'] + '.bmp'
+        image_name = row['Image'] + '.tif'
         energy = row['Energy']
 
         spotimage = os.path.join(acquiredfoldersdir, folder)
