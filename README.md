@@ -11,6 +11,28 @@ Currently a non-working version
 A script containing various functions that are used in both the spot qa and
 commissioning scripts
 
+## logosfilesort.py
+
+Sort an acquired set of measurements into a summary excel file
+
+## quicklogoscheck.py
+
+to be used on a single acquisition folder to plot the profile details provided
+by the beamworks software
+
+## singlefilefit.py
+
+Script to summarise a set of acquired single spot profiles IN PROGRESS
+
+## spot_grid_qa.py
+
+A script for ongoing qa that will analyse a predefined grid of spots and write
+the results to an excel spreadsheet
+
+## spot_position_mod.py
+
+Contains various functions for the spot grid qa script
+
 ## tps_profiles.py
 
 Script to convert single spot images acquired using the LOGOS3000 or 4000 into
@@ -19,16 +41,9 @@ Plots along the central axis are saved in an excel workbook with linear and log
 scale and a difference image between the 2D fit and the raw image values is
 included  
 
-## spot_commissioning.py - SUPERCEDED
+## uniformity.py
 
-A script that converts a folder of raw acquired images in tiff file format into
-an excel spreadsheet containing fitted plots to enter into a treatment planning
-system software
-
-## spot_qa
-
-A script for ongoing qa that will analyse a predefined grid of spots and write
-the results to an access database
+script to analyse a uniformity image - IN PROGRESS
 
 ## Components
 
