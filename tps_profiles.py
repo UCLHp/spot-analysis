@@ -63,15 +63,24 @@ def produce_spot_dict(log_dir, acquiredfoldersdir):
     spot_dataset = lm.create_spot_dataset(log_dir, acquiredfoldersdir)
 
     ga_list = spot_dataset.GA.unique()
-    ga = eg.choicebox("Select Gantry Angle for fit analysis", "GA", ga_list)
+    if len(ga_list) == 1:
+        ga = ga_list[0]
+    else:
+        ga = eg.choicebox("Select Gantry Angle for fit analysis", "GA", ga_list)
     ga_subdf = spot_dataset.loc[spot_dataset['GA'] == int(ga)]
 
     rs_list = ga_subdf.RS.unique()
-    rs = eg.choicebox("Select Range Shifter", "RS", rs_list)
+    if len(rs_list) == 1:
+        rs = rs_list[0]
+    else:
+        rs = eg.choicebox("Select Range Shifter", "RS", rs_list)
     rs_subdf = ga_subdf.loc[ga_subdf['RS'] == int(rs)]
 
     dist_list = rs_subdf.Distance.unique()
-    dist = eg.choicebox("Select Distance", "Distance from Iso", dist_list)
+    if len(dist_list) == 1:
+        dist = dist_list[0]
+    else:
+        dist = eg.choicebox("Select Distance", "Distance from Iso", dist_list)
     subdf = rs_subdf.loc[rs_subdf['Distance'] == int(float(dist))]
 
     spots = {}
