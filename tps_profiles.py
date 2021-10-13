@@ -118,7 +118,7 @@ def plot_fits(spots, ga, rs, dist):
     os.mkdir(temp_dir)
 
     for key in sorted(spots):
-        print(f"Fitting profiles for {key}MeV Image")
+        print(f"Creating plots for {key}MeV Image")
 
         # Write key and parameter values to summary sheet
         summary.write(f'B{counter+4}', key)

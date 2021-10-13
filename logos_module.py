@@ -25,7 +25,7 @@ class ActiveScript:
             if line.startswith('TextPath'):
                 if '3' in line:
                     self.device = '3000'
-                if '4' in line:
+                elif '4' in line:
                     self.device = '4000'
                 else:
                     self.device = 'Unknown'
@@ -247,12 +247,16 @@ class Spot:
     '''
     def __init__(self, image_dir, ga=None, rs=None, dist=None, energy=None):
         self.imagearray = image_to_array(image_dir, norm=False)
+        self.activescript = ActiveScript(os.path.join(os.path.dirname(image_dir), 'activescript.txt'))
+        if self.activescript.device == '4000':
+            self.rotate_pixeldata()
         self.spotloc = find_spot(self.imagearray)
         self.cropspot, self.cropspotcentre = cropspot(self.imagearray,
                                                       self.spotloc,
                                                       cutoff=0.5,
                                                       growby=4)
-        self.pixeldimensions = fetch_pixel_dimensions(image_dir)
+        self.pixeldimensions = [self.activescript.CameraHRatio,
+                                self.activescript.CameraVRatio]
         self.output_data = fetch_output_data(image_dir)
         self.rawcropprofiles = raw_profiles(self.cropspot,
                                             self.cropspotcentre

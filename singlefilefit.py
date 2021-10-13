@@ -1,4 +1,5 @@
-import os
+from os import listdir
+from os.path import join
 import xlsxwriter
 import easygui as eg
 import logos_module as lm
@@ -59,7 +60,7 @@ def find_image_type(folder_path):
     this function looks to see which extension is present in the file list of
     the selected folder
     '''
-    file_contents = os.listdir(folder_path)
+    file_contents = listdir(folder_path)
     if any('bmp' in filename for filename in file_contents):
         img_type = '.bmp'
     else:
@@ -68,23 +69,38 @@ def find_image_type(folder_path):
 
 
 class SingleSpotSet:
+    '''
+    Class to group a single acquisition folder from the XRV4000/3000
+    '''
     def __init__(self, image_dir):
-        self.activescript = lm.ActiveScript(os.path.join(image_dir, 'activescript.txt'))
+        self.activescript = lm.ActiveScript(join(image_dir, 'activescript.txt'))
         self.im_type = find_image_type(image_dir)
-        self.im_list = [im for im in os.listdir(folder_path) if im.endswith(im_type)]
+        self.im_list = [im for im in listdir(image_dir) if im.endswith(self.im_type)]
+        print('Pulling spot data...')
+        self.spotlist = [lm.Spot(join(image_dir, i)) for i in self.im_list]
+
+
+    def __str__(self):
+        return (f'This set of {len(self.spotlist)} spots was acquired using '
+                f'the {self.activescript.device} in {self.im_type} format')
+
+    def fit(self):
+        for spot in self.spotlist:
+            spot.create_fits()
+
 
 
 
 
 def fit_file(folder_path):
-    activescript = lm.ActiveScript(os.path.join(folder_path,
-                                                'activescript.txt')
+    activescript = lm.ActiveScript(join(folder_path,
+                                   'activescript.txt')
                                    )
     im_type = find_image_type(folder_path)
     print(im_type)
-    im_list = [im for im in os.listdir(folder_path) if im.endswith(im_type)]
+    im_list = [im for im in listdir(folder_path) if im.endswith(im_type)]
     for spot in im_list:
-        im_array = lm.image_to_array(os.path.join(folder_path, spot))
+        im_array = lm.image_to_array(join(folder_path, spot))
         if activescript.device == '4000':
             img_array = np.rot90(im_array, 1)
 
@@ -94,8 +110,9 @@ def fit_file(folder_path):
     print('success')
 
 
+test = SingleSpotSet("C:\\Users\\cgillies.UCLH\\Desktop\\SORT_OR_DELETE\\LOGOS_Analysis\\2021_0316_0007")
+print(test)
+test.fit()
 
-
-
-if __name__ == '__main__':
-    fit_file(eg.diropenbox())
+# if __name__ == '__main__':
+    #fit_file(eg.diropenbox())
