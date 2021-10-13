@@ -1,10 +1,10 @@
 import os
+from os.path import join, isfile
 import xlsxwriter
 import easygui as eg
 import logos_module as lm
 import matplotlib.pyplot as plt
 import numpy as np
-from astropy.modeling import models, fitting
 
 '''
 This Script creates a report containing single and double 2D Gaussian fits to
@@ -86,17 +86,29 @@ def produce_spot_dict(log_dir, acquiredfoldersdir):
     spots = {}
     for index, row in subdf.iterrows():
         folder = row['Folder']
-        image_name = row['Image'] + '.tif'
         energy = row['Energy']
+        
+        # Image file may be acquired as either bmp or tif
+        extension = ""
+        img_dir = join(acquiredfoldersdir, folder)
+        if isfile( join(img_dir, row['Image']+'.tif') ):
+            extension = '.tif'
+        elif isfile( join(img_dir, row['Image']+'.bmp') ):
+            extension = '.bmp'
+        else:
+            print("ERROR: No tif or bmp file found for {}".format(join(img_dir, row['Image'])) )
+            raise SystemExit
 
-        spotimage = os.path.join(acquiredfoldersdir, folder)
-        spotimage = os.path.join(spotimage, image_name)
+        image_name = row['Image'] + extension
+        spotimage = join(img_dir, image_name)       
         spots[energy] = lm.Spot(spotimage, ga, rs, dist, energy)
-
+        
     return spots, ga, rs, dist
 
 
-# workbook = xlsxwriter.Workbook(os.path.join(save_dir, 'TPS_Profiles.xlsx'), {'nan_inf_to_errors': True})
+
+
+# workbook = xlsxwriter.Workbook(join(save_dir, 'TPS_Profiles.xlsx'), {'nan_inf_to_errors': True})
 
 def plot_fits(spots, ga, rs, dist):
     '''Create plots to review spot profiles'''
@@ -104,7 +116,7 @@ def plot_fits(spots, ga, rs, dist):
     save_dir = eg.diropenbox(title='Please Select Save Location')
     # Create empty excel file to write results to, with ability to write errors as 0
     savename = f'Fits_G{ga}_RS{rs}_Dist{dist}.xlsx'
-    workbook = xlsxwriter.Workbook(os.path.join(save_dir, savename), {'nan_inf_to_errors': True})
+    workbook = xlsxwriter.Workbook(join(save_dir, savename), {'nan_inf_to_errors': True})
     # Summary worksheet to contain parameters for all energies
     summary = workbook.add_worksheet('Summary')
     summary.write('B3', 'Energy')
@@ -114,7 +126,7 @@ def plot_fits(spots, ga, rs, dist):
     # counter used to add line per image analysed
     counter = 0
 
-    temp_dir = os.path.join(save_dir, 'ImagesForDeletion')
+    temp_dir = join(save_dir, 'ImagesForDeletion')
     os.mkdir(temp_dir)
 
     for key in sorted(spots):

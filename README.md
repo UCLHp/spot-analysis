@@ -81,7 +81,8 @@ run the code and navigate to this directory.
 
 ## Limitations / Known Bugs
 
-Currently only works for tifffiles
+Installing requirements.txt may produce conflicts when using certain versions of python.
+All development and testing was done using python 3.8.
 
 ## Contribute
 

@@ -6,7 +6,6 @@ import cv2
 from scipy.ndimage import median_filter
 from PIL import Image
 from astropy.modeling import models, fitting
-import matplotlib.pyplot as plt
 
 
 class ActiveScript:
@@ -327,6 +326,7 @@ def create_location_key(acquisitionlog):
     '''Read acquisitionlog into pandas df and perform light edits'''
 
     location_key = pd.read_excel(acquisitionlog, engine='openpyxl')
+    #location_key = pd.read_excel(acquisitionlog)
     location_key['Image'] = [str(int(i)).zfill(8) for i in location_key['Image']]
     location_key['Collated Number'] = [str(int(i)).zfill(8) for i in location_key['Collated Number']]
 
