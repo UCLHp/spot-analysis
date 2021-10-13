@@ -67,17 +67,26 @@ def find_image_type(folder_path):
     return img_type
 
 
+class SingleSpotSet:
+    def __init__(self, image_dir):
+        self.activescript = lm.ActiveScript(os.path.join(image_dir, 'activescript.txt'))
+        self.im_type = find_image_type(image_dir)
+        self.im_list = [im for im in os.listdir(folder_path) if im.endswith(im_type)]
+
+
+
+
 def fit_file(folder_path):
     activescript = lm.ActiveScript(os.path.join(folder_path,
                                                 'activescript.txt')
-                                                )
-    img_type = find_image_type(folder_path)
-    print(img_type)
-    img_list = [spot for spot in os.listdir(folder_path) if spot.endswith(img_type)]
-    for spot in img_list:
-        img_array = lm.image_to_array(os.path.join(folder_path, spot))
+                                   )
+    im_type = find_image_type(folder_path)
+    print(im_type)
+    im_list = [im for im in os.listdir(folder_path) if im.endswith(im_type)]
+    for spot in im_list:
+        im_array = lm.image_to_array(os.path.join(folder_path, spot))
         if activescript.device == '4000':
-            img_array = np.rot90(img_array, 1)
+            img_array = np.rot90(im_array, 1)
 
         crop_spot = lm.cropspot(img_array, lm.find_spot(img_array), cutoff=0.5,
                                 growby=4
