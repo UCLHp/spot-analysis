@@ -72,24 +72,42 @@ class SingleSpotSet:
     '''
     Class to group a single acquisition folder from the XRV4000/3000
     '''
-    def __init__(self, image_dir):
+    def __init__(self, image_dir, ga='', rs='', dist=''):
         self.activescript = lm.ActiveScript(join(image_dir, 'activescript.txt'))
         self.im_type = find_image_type(image_dir)
         self.im_list = [im for im in listdir(image_dir) if im.endswith(self.im_type)]
-        print('Pulling spot data...')
-        self.spotlist = [lm.Spot(join(image_dir, i)) for i in self.im_list]
-
 
     def __str__(self):
-        return (f'This set of {len(self.spotlist)} spots was acquired using '
-                f'the {self.activescript.device} in {self.im_type} format')
-
-    def fit(self):
-        for spot in self.spotlist:
-            spot.create_fits()
+        return (f'This set of {len(self.im_list)} spots was acquired using '
+                f'the {self.activescript.device} in {self.im_type} format '
+                f'\n The set was acquired at gantry angle {ga} with range'
+                f' shifter {rs} at a distance of {dist}')
 
 
+    def adddetails(self):
+        self.ga = eg.integerbox(msg='Gantry Angle',
+                                     title='Select angle of acquisition',
+                                     lowerbound=0,
+                                     upperbound=360
+                                     )
 
+        self.rs = eg.choicebox('Please select Range Shifter',
+                          'RS', ['None', '2cm', '3cm', '5cm']
+                          )
+
+        self.dist = eg.integerbox(msg='Distance',
+                               title='Enter the distance from iso',
+                               lowerbound=-41,
+                               upperbound=41
+                               )
+
+        print('Pulling spot data...')
+        self.spotlist = [lm.Spot(join(self.image_dir, i),
+                         ga=self.ga, rs=self.rs, dist=self.dist) for i in self.im_list]
+
+        def fit(self):
+            for spot in self.spotlist:
+                spot.create_fits()
 
 
 def fit_file(folder_path):
@@ -111,8 +129,8 @@ def fit_file(folder_path):
 
 
 test = SingleSpotSet("C:\\Users\\cgillies.UCLH\\Desktop\\SORT_OR_DELETE\\LOGOS_Analysis\\2021_0316_0007")
-print(test)
-test.fit()
+# print(test)
+test.adddetails()
 
 # if __name__ == '__main__':
     #fit_file(eg.diropenbox())
