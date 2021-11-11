@@ -1,3 +1,4 @@
+print('Importing Libraries...')
 from os import listdir
 from os.path import join
 import xlsxwriter
@@ -6,6 +7,7 @@ import logos_module as lm
 import matplotlib.pyplot as plt
 import numpy as np
 from astropy.modeling import models, fitting
+print('Libraries Imported')
 
 '''
 This Script creates a report containing single and double 2D Gaussian fits to
@@ -73,6 +75,7 @@ class SingleSpotSet:
     Class to group a single acquisition folder from the XRV4000/3000
     '''
     def __init__(self, image_dir, ga='', rs='', dist=''):
+        self.image_dir = image_dir
         self.activescript = lm.ActiveScript(join(image_dir, 'activescript.txt'))
         self.im_type = find_image_type(image_dir)
         self.im_list = [im for im in listdir(image_dir) if im.endswith(self.im_type)]
@@ -104,10 +107,13 @@ class SingleSpotSet:
         print('Pulling spot data...')
         self.spotlist = [lm.Spot(join(self.image_dir, i),
                          ga=self.ga, rs=self.rs, dist=self.dist) for i in self.im_list]
+        print('Spot data acquired')
 
-        def fit(self):
-            for spot in self.spotlist:
-                spot.create_fits()
+    def fit(self):
+        print('Creating fits')
+        for spot in self.spotlist:
+            spot.create_fits()
+        print('Fits completed')
 
 
 def fit_file(folder_path):
@@ -131,6 +137,7 @@ def fit_file(folder_path):
 test = SingleSpotSet("C:\\Users\\cgillies.UCLH\\Desktop\\SORT_OR_DELETE\\LOGOS_Analysis\\2021_0316_0007")
 # print(test)
 test.adddetails()
+test.fit()
 
 # if __name__ == '__main__':
     #fit_file(eg.diropenbox())
