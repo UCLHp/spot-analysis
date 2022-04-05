@@ -118,7 +118,7 @@ class Output:
             flip_factor = -1 # flip the long axis coordinates while transfering to the image coordinates from Callum's code
 
         elif self.device == "3000":
-            loc_name = list(pred_xrv4000.keys())
+            loc_name = list(pred_xrv3000.keys())
             ploc = pred_xrv3000
             flip_factor = 1
 
@@ -203,7 +203,6 @@ class Output:
 
         return rot_l, rot_s
 
-        # print(f'mloc:{self.mloc} \n\n match :{self.match}') % not used by KC
 
 class Profile:
     # def __init__(self, profile):

@@ -54,7 +54,7 @@ def make_window(theme):
 
 
     layout = [[sg.Frame('Reminder: ', [[sg.Text('Operator 2 is required when Operator 1 cannot sign off the spot grid QA.')], person_1 + person_2], size = (550,80))],
-             [sg.Frame('Your spot measurements: ', [gantry + gantry_angle, col_titles, ent1, ent2, ent3, ent4, ent5, comment, button_submit + button_exit], size = (550,380))
+             [sg.Frame('Your spot measurements: ', [gantry + gantry_angle, col_titles, ent1, ent2, ent3, ent4, ent5, comment, button_submit + button_exit], size = (550,308))
                 ]]
 
     window = sg.Window('please tell me about your spot measurements:', layout, finalize =True)
@@ -155,12 +155,21 @@ def main():
     while True:
         event, values = window.read() #comment off to test
 
+# ## | --------------------- |
+# ## | --- Do not delete --- |
+# ## | --------------------- |
         # event = 'Submit'
 
         # values = {'-person1-': 'KC', '-person2-': 'TNC', '-gantry-': '3', '-gantry_angle-': '0', '-pro_en_1-': '70', '-bmp_loc_1-': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/my_spot_analysis/dummyData/G3_XRV4000_2022_03_03/run01_zero1/2022_0303_0001_70/00000001.bmp', 'Browse': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/my_spot_analysis/dummyData/G3_XRV4000_2022_03_03/run01_zero1/2022_0303_0001_70/00000001.bmp', '-pro_en_2-': '100', '-bmp_loc_2-': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/my_spot_analysis/dummyData/G3_XRV4000_2022_03_03/run01_zero1/2022_0303_0002_100/00000001.bmp', 'Browse0': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/my_spot_analysis/dummyData/G3_XRV4000_2022_03_03/run01_zero1/2022_0303_0002_100/00000001.bmp', '-pro_en_3-': '150', '-bmp_loc_3-': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/my_spot_analysis/dummyData/G3_XRV4000_2022_03_03/run01_zero1/2022_0303_0003_150/00000001.bmp', 'Browse1': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/my_spot_analysis/dummyData/G3_XRV4000_2022_03_03/run01_zero1/2022_0303_0003_150/00000001.bmp', '-pro_en_4-': '200', '-bmp_loc_4-': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/my_spot_analysis/dummyData/G3_XRV4000_2022_03_03/run01_zero1/2022_0303_0004_200/00000001.bmp', 'Browse2': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/my_spot_analysis/dummyData/G3_XRV4000_2022_03_03/run01_zero1/2022_0303_0004_200/00000001.bmp', '-pro_en_5-': '240', '-bmp_loc_5-': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/my_spot_analysis/dummyData/G3_XRV4000_2022_03_03/run01_zero1/2022_0303_0005_240/00000001.bmp', 'Browse3': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/my_spot_analysis/dummyData/G3_XRV4000_2022_03_03/run01_zero1/2022_0303_0005_240/00000001.bmp', '-comment-': ''}
 
         # print(f'event: {event}')
         # print(f'values: {values}')
+
+# ## | --------------------- |
+# ## | --- for debugging  -- |
+# ## | --------------------- |
+
+
         spotpatterns = {}
         if event == 'Submit' and values['-gantry-'] != '' and values['-gantry_angle-'] != '' and values['-person1-'] != '' :
             en = []
@@ -259,17 +268,14 @@ def main():
                 for key in all_data.keys():
                     db.push_spot_data(DATABASE_DIR, all_data[key])
         elif event2 == 'Cancel' or sg.WIN_CLOSED:
+            print(f'>> The code has completed data analysis, printed figures, output a report and an excel file. \n However, NOTHING has gone to the proton database!')
             break
 
 
         return
-
-# test github
 
 
 
 if __name__ == '__main__':
     theme = 'DefaultNoMoreNagging'
     main()
-
-    # # ##data to database

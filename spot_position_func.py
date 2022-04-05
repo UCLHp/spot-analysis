@@ -99,7 +99,7 @@ def calc_shifts(df, device):
     df['bltr_gr'] = bltr_gr
     df['tlbr_gr'] = tlbr_gr
 
-    print(f'df.columns : {df.columns}')
+    # print(f'df.columns : {df.columns}')
 
 
     return df
@@ -174,33 +174,6 @@ def spot_to_profiles(myimage, pixel_loc, activescript):
     tr_arr = range(len(normed))
     tr_bl =  [pixel2mm(tr_arr, activescript, 'd'), np.fliplr(normed).diagonal(), np.fliplr(myimage).diagonal()]
 
-    # fig,axes = plt.subplots(nrows = 2, ncols = 1)
-    #
-    # axes[0].plot(h_arr, horprof[1], 'k+', label = 'horizontal')
-    # axes[0].plot(v_arr, vertprof[1], 'ro', fillstyle = 'none',label = 'vertical')
-    # axes[0].plot(tl_arr, tl_br[1], 'g:', label = 'tl_br')
-    # axes[0].plot(tr_arr, tr_bl[1], 'b--', label = 'tr_bl')
-    # axes[0].legend()
-    #
-    # axes[1].imshow(myimage, extent = (0, 120/3.6, 120/3.6, 0))
-    #
-    # plt.show()
-    #
-    # gx = range(0, len(myimage))
-    # gy = range(0, len(myimage))
-    #
-    # ggx, ggy= np.meshgrid(gx, gy)
-    #
-    # print(f'gx {np.array(gx).size} || gy :{np.array(gy).size} || ggx {np.array(ggx).shape}')
-    #
-    # fig = plt.figure(figsize = (4,4))
-    # ax = fig.add_subplot(111, projection = '3d')
-    #
-    #
-    # surf = ax.plot_surface(ggx, ggy, myimage, cmap = 'tab20b')
-    # fig.colorbar(surf)
-    # plt.show()
-
     return horprof, vertprof, tl_br, tr_bl
 
 
@@ -230,10 +203,6 @@ def pixel2mm(pixel_arr, activescript, prof_dir):
         elif prof_dir == 'd':
             resol = 1/sqrt((1/activescript.CameraVRatio)**2+(1/activescript.CameraVRatio)**2)
 
-    # print(f'resol:{resol} || prof_dir {prof_dir}')
-    # print(f'resol:{resol} || prof_dir {prof_dir} || npixels {npixels}')
-    # print(f'new equation')
-    # val = [(p/resol) - ((npixels/2)/resol) for p in pixel_arr]
     val = [(p/resol) for p in pixel_arr]
 
     return val
@@ -264,10 +233,7 @@ def fetch_parameters(arr_mm, nor_amp, raw_amp):
             ind_r = arr_mm.index(pair_lsv[wi[0]][0])
             ind_l = arr_mm.index(pair_lsv[wi[1]][0])
 
-        # if percent == 0.5:
-        #     print(f'\n wi: {wi}')
-        #     print(f'>>>0.5_pair_lsv: {pair_lsv[:5]} \n')
-        #
+
         return ind_l, ind_r
 
     def interpol_point(percent, ind, arr_mm, nor_amp, raw_amp):
@@ -311,9 +277,6 @@ def fetch_parameters(arr_mm, nor_amp, raw_amp):
     lgrad = (80-20)/(outcome[0.8][0][0] - outcome[0.2][0][0])
     rgrad = (80-20)/(outcome[0.8][1][0] - outcome[0.2][1][0])
     fwhm = outcome[0.5][1][0] - outcome[0.5][0][0]
-
-    # print(f'outcome : {outcome}')
-    # print(f'lgrad:{lgrad} || rgrad:{rgrad} || fwhm:{fwhm}')
 
     return lgrad, rgrad, fwhm
 

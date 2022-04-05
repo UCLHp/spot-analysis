@@ -194,12 +194,6 @@ def make_table(df):
                     rel_tab.append(line)
                     line = []
 
-
-    # # print(f'data: {data}')
-    # print(f'abs: {abs_tab} \n rel: {rel_tab}')
-    #
-    # print(f'mspot : {mspot}')
-
     return data, abs_tab, rel_tab, mspot
 
 def make_shift_table(tab_list, pos):
@@ -323,17 +317,6 @@ def spot_report(df, p1, p2, fpath, gr_path, prof_path):
         abs_tab.insert(0, at_h)
 
         at = make_shift_table(abs_tab, pos)
-        # at = Table(abs_tab)
-        #
-        # at.setStyle(TableStyle([('VALIGN', (0, 0), (-1, -1), 'MIDDLE'), ('ALIGN', (0,0), (-1, -1), 'CENTER'), \
-        #                         ('BOX', (0, 0), (-1, -1), 2, colors.black), ('BOX', (0, 0), (0, -1), 2, colors.black), \
-        #                         ('BOX', (0, 0), (-1, 0), 2, colors.black)]))
-        #
-        # # draw a line to separate each position
-        # for r in range(0, len(abs_tab)):
-        #     for c in range(0, len(abs_tab[0])):
-        #         if abs_tab[r][c] in pos:
-        #             at.setStyle(TableStyle([('LINEABOVE', ( 0, r), (-1, r), 1, colors.black)]))
 
         story.append(at)
         story.append(Spacer(1, 20))
@@ -347,18 +330,6 @@ def spot_report(df, p1, p2, fpath, gr_path, prof_path):
 
         rt = make_shift_table(rel_tab, pos)
 
-        # rt = Table(rel_tab)
-        #
-        # rt.setStyle(TableStyle([('VALIGN', (0, 0), (-1, -1), 'MIDDLE'), ('ALIGN', (0,0), (-1, -1), 'CENTER'), \
-        #                         ('BOX', (0, 0), (-1, -1), 2, colors.black), ('BOX', (0, 0), (0, -1), 2, colors.black), \
-        #                         ('BOX', (0, 0), (-1, 0), 2, colors.black)]))
-        #
-        # # draw a line to separate each position
-        # for r in range(0, len(rel_tab)):
-        #     for c in range(0, len(rel_tab[0])):
-        #         if rel_tab[r][c] in pos:
-        #             rt.setStyle(TableStyle([('LINEABOVE', ( 0, r), (-1, r), 1, colors.black)]))
-
         story.append(rt)
         story.append(Spacer(1, 20))
 
@@ -369,10 +340,7 @@ def spot_report(df, p1, p2, fpath, gr_path, prof_path):
         ms_h = ['Spot position', 'Energy (MeV)']
         mspot.insert(0, ms_h)
 
-
-
         ms = make_shift_table(mspot, pos)
-
 
         story.append(ms)
         story.append(Spacer(1, 20))
@@ -408,8 +376,6 @@ def spot_report(df, p1, p2, fpath, gr_path, prof_path):
     # fwhm plot
     story.append(PageBreak())
     story.append(Paragraph('The definition of four profiles per spot.' , sp))
-    # i = Image(image_fwhm, width = 8*inch,  height = 6*inch,   hAlign = 'CENTER')
-    # story.append(RotatedImage(image_fwhm, width/2 , height/2,   hAlign = 'RIGHT'))
     story.append(Image(prof_path, width = 2.5*inch,  height = 2.5*inch,   hAlign = 'CENTER' ))
     story.append(Spacer(1, 10))
     story.append(Paragraph('The scatterplots allow datapoints to have a small spread in x-axis such that we can better see the distribution.' , sp))
@@ -422,9 +388,6 @@ def spot_report(df, p1, p2, fpath, gr_path, prof_path):
     story.append(Spacer(1, 10))
     story.append(Paragraph('The scatterplots allow the datapoints to have a small spread in x-axis such that we can better see the distribution.' , sp))
     story.append(Image(image_gr, width = 8*inch,  height = 5*inch,   hAlign = 'CENTER'))
-    # i = Image(image_gr, width = 8*inch,  height = 6*inch,   hAlign = 'CENTER')
-    # story.append(RotatedImage(image_gr, 0.5*width , 0.5*height,  hAlign = 'LEFT')) #(self, image, x,y, width=None,height=None)
-
 
 
 

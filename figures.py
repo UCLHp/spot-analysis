@@ -294,26 +294,16 @@ def plot_shifts_by_pos(df, device, tolerance):
     if tolerance ==1:
         b = 2.5
 
-    # df = calc_shifts(df, device)
-
-    # predicted spot grid
-    # colors_loc = {} # pair the spot location with colours
     if device == 'XRV-4000':
         nrows = 5
         ncols = 3
         pos = pred_xrv4000
-        # create the location-colour pairs
-        # for i, n in enumerate(pos.keys()):
-        #     colors_loc.update({n : rainbow[i]})
 
 
     elif device == 'XRV-3000':
         nrows = 3
         ncols = 3
         pos = pred_xrv3000
-        # create the location-colour pairs
-        for i, n in enumerate(pos.keys()):
-            colors_loc.update({n : rainbow[i]})
 
     fig, axes = plt.subplots(figsize=(12, 12))
 
