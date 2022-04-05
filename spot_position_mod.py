@@ -7,19 +7,21 @@ import cv2
 import easygui as eg
 import openpyxl
 
-def rotate_image(array, angle, pivot):
-    '''Function to rotate an array CCW a given angle around a defined axis
-    inputs:
-    array - 2D image structure (numpy array )'''
-    # Add 0 on both axis such that the pivot is at the centre of the array
-    padx = [array.shape[1] - pivot[0], pivot[0]]
-    pady = [array.shape[0] - pivot[1], pivot[1]]
-    # Add padding to array
-    array_p = np.pad(array, [pady, padx], 'constant')
-    array_r = ndimage.rotate(array_p, angle, reshape=False)
-    return array_r[pady[0]:-pady[1], padx[0]:-padx[1]]
-    # further info here: https://stackoverflow.com/questions/25458442/rotate-a-2d-image-around-specified-origin-in-python
+# additional packages
+import pandas as pd
+from math import ceil
+import copy
+import matplotlib.pyplot as plt
 
+import spot_position_func as spf
+import constants as cs
+
+
+pred_xrv4000 = cs.pred_xrv4000
+pred_xrv3000 = cs.pred_xrv3000
+
+plan_loc_l = cs.plan_loc_l
+plan_loc_s = cs.plan_loc_s
 
 class ActiveScript:
     def __init__(self, image_dir):
@@ -53,7 +55,6 @@ class ActiveScript:
             self.AppXCenter = AppXCenter
             self.AppYCenter = AppYCenter
 
-
 class Output:
     '''
     The Output class will create an object that contains the information
@@ -74,41 +75,165 @@ class Output:
         date = full_data[0][3]
         self.datetime = datetime.datetime.strptime(date, '%H:%M:%S %m/%d/%Y')
         self.center = [float(full_data[0][5]),float(full_data[0][6])]
+        if self.center[0] > 700 or self.center[1] > 700:
+            self.device = "4000"
+            loc_name = list(pred_xrv4000.keys())
+        else:
+            self.device = "3000"
+            loc_name = list(pred_xrv3000.keys())
         self.no_of_spots = no_of_spots
         self.spots_xy = {}
         self.spots_width = {}
         self.spots_height = {}
         self.spots_diameter = {}
         self.spots_quality = {}
-        for i in range(1, 1+self.no_of_spots):
+
+        for i in np.arange(1, 1 + self.no_of_spots):
             row = [full_data.index(x) for x in full_data if x[0] == str(i)][0]
             self.spots_xy[i] = [full_data[row][3],full_data[row][4]]
             self.spots_width[i] = full_data[row][19]
             self.spots_height[i] = full_data[row][23]
-            self.spots_diameter[i] = full_data[row][25]
+            self.spots_diameter[i] = full_data[row][25] # averaged diameter for every 5 degree
             self.spots_quality[i] = full_data[row][27]
 
+        # self.rot_l, self.rot_s = self.flip_ls()
+        self.mloc, self.match = self.identify_spot() # corrlate the position name with the key in spots_xy
+
+        spot_info = {key:0 for key, val in self.mloc.items() if val[0] !=0}
+        # if self.device == "4000":
+        for key in spot_info.keys():
+            # update spots_xy, spots_width(was spots_height), spot_height(was spots_width), spot_diameter, spots_quality
+            spot_info[key] = copy.deepcopy(self.mloc[key])
+            spot_info[key].append(self.spots_height[self.match[key]])
+            spot_info[key].append(self.spots_width[self.match[key]])
+            spot_info[key].append(self.spots_diameter[self.match[key]])
+            spot_info[key].append(self.spots_quality[self.match[key]])
+
+        self.spots_info = spot_info
+
+    def identify_spot(self):
+        if self.device == "4000":
+            loc_name = list(pred_xrv4000.keys())
+            ploc = pred_xrv4000
+            flip_factor = -1 # flip the long axis coordinates while transfering to the image coordinates from Callum's code
+
+        elif self.device == "3000":
+            loc_name = list(pred_xrv4000.keys())
+            ploc = pred_xrv3000
+            flip_factor = 1
+
+
+        # create an empty dictionary with the position name as the key
+        mloc = {key:[0,0] for key in loc_name}
+
+        match = {key:0 for key in loc_name}
+        for key, item in self.spots_xy.items():
+            for pkey, pitem in ploc.items():
+                tol = 10
+                # negative sign was added in front of y-coordinate of the spot position because the logos output coordinates need to match with the image coordinates
+                if self.device == "4000":
+                    if float(item[1]) > float(pitem[0] -tol) and float(item[1]) < float(pitem[0] +tol): # find the spot with matching long axis coordinate
+                        if flip_factor*float(item[0]) > float(pitem[1] -tol) and flip_factor*float(item[0]) < float(pitem[1] +tol): # find the spot with matching y-coordinate
+                            mloc[pkey] =[float(item[1]), flip_factor*float(item[0])]
+                            match[pkey] = key
+                elif self.device == "3000":
+                    if float(item[0]) > float(pitem[0] -tol) and float(item[0]) < float(pitem[0] +tol): # find the spot with matching long axis coordinate
+                        if flip_factor*float(item[1]) > float(pitem[1] -tol) and flip_factor*float(item[1]) < float(pitem[1] +tol): # find the spot with matching y-coordinate
+                            mloc[pkey] =[float(item[0]), flip_factor*float(item[1])]
+                            match[pkey] = key
+
+        for key, item in mloc.items():
+            if item[0] == 0:
+                if item[1] == 0:
+                    print(f' >>>>> The script does not find any {key} spot! ')
+
+        return mloc, match
+
+    # def flip_ls(self):
+
+        dl = [np.float(self.spots_xy[i][0]) - np.float(self.spots_xy[i-1][0]) for i in np.arange(1, self.no_of_spots + 1) if i !=1]
+        ds = [np.float(self.spots_xy[i][1]) - np.float(self.spots_xy[i-1][1]) for i in np.arange(1, self.no_of_spots + 1) if i !=1]
+
+        if abs(dl[0]) > abs(ds[0]): #scan along the long axis
+            ls_s = [i for i in np.arange(0, len(ds)) if abs(ds[i]) > sum(ds)/len(ds)]
+            mr = int(ceil(self.no_of_spots/(ls_s[0]+1))) #3, xrv4000
+            mc = ls_s[0]+1 #5, xrv4000
+            arr_l = np.zeros((mr, mc))
+            arr_s = np.zeros((mr, mc))
+
+            # for ind, key in enumerate(self.spots_xy):
+            for ir in np.arange(0, mr):
+                for ic in np.arange(0, mc):
+                    if ir*mc+ic+1 < self.no_of_spots:
+                        arr_l[ir, ic] = self.spots_xy.get(ir*mc+ic+1)[0]
+                        arr_s[ir, ic] = self.spots_xy.get(ir*mc+ic+1)[1]
+                    else:
+                        arr_l[ir, ic] = 0
+                        arr_s[ir, ic] = 0
+            if self.device == "4000":
+                rot_l = np.fliplr(arr_l).transpose()
+                rot_s = np.fliplr(arr_s).transpose()
+            else:
+                rot_l = arr_l
+                rot_s = arr_s
+
+        elif  abs(dl[0]) < abs(ds[0]):
+            print(f'scanning along the 4000 short axis. Have never tested this part of the script!')
+            ls_l = [i for i in np.arange(0, len(dl)) if abs(ds[i]) > sum(dl)/len(dl)]
+            mr = int(ceil(self.no_of_spots/(ls_s[0]+1))) #3, xrv4000
+            mc = ls_s[0]+1 #5
+            arr_l = np.zeros((mr, mc))
+            arr_s = np.zeros((mr, mc))
+
+            for ir in np.arange(0, mr):
+                for ic in np.arange(0, mc):
+                    if ir*mc+ic+1 < self.no_of_spots:
+                        arr_l[ir, ic] = self.spots_xy.get(ir*mc+ic+1)[0]
+                        arr_s[ir, ic] = self.spots_xy.get(ir*mc+ic+1)[1]
+                    else:
+                        arr_l[ir, ic] = 0
+                        arr_s[ir, ic] = 0
+
+            if self.device == "4000":
+                rot_l = np.flipUP(arr_l).transpose()
+                rot_s = np.flipIP(arr_s).transpose()
+            else:
+                rot_l = arr_l
+                rot_s = arr_s
+
+        return rot_l, rot_s
+
+        # print(f'mloc:{self.mloc} \n\n match :{self.match}') % not used by KC
+
 class Profile:
-    def __init__(self, profile):
-        self.lgrad, self.rgrad = gradient_fetch(profile, 0.2, 0.8)
-        self.fwhm = fwhm_fetch(profile)
+    # def __init__(self, profile):
+    #     self.lgrad, self.rgrad = spf.gradient_fetch(profile, 0.2, 0.8)
+    #     self.fwhm = spf.fwhm_fetch(profile)
+    def __init__(self, horporf):
+
+        arr_mm = horporf[0]
+        nor_amp = horporf[1]
+        raw_amp = horporf[2]
+        self.lgrad, self.rgrad, self.fwhm = spf.fetch_parameters(arr_mm, nor_amp, raw_amp)
 
     def __str__(self):
         return f'lgrad: {self.lgrad}, rgrad: {self.rgrad}, fwhm: {self.fwhm}'
-
 
 class Spot:
     '''Defines an individual spot (from an array) and it's relevant properties
     as obtained from a LOGOS detector with an activescript.txt file
     '''
     def __init__(self, spot_array, pixel_loc, activescript):
+
         self.pixel_loc = pixel_loc
-        horprof, vertprof, tl_br, bl_tr = spot_to_profiles(spot_array, activescript)
+        horprof, vertprof, tl_br, bl_tr = spf.spot_to_profiles(spot_array, pixel_loc, activescript)
 
         self.horprof = Profile(horprof)
         self.vertprof = Profile(vertprof)
         self.tl_br = Profile(tl_br)
         self.bl_tr = Profile(bl_tr)
+
+
 
         x = self.pixel_loc[0] - activescript.AppXCenter
         y = self.pixel_loc[1] - activescript.AppYCenter
@@ -132,7 +257,6 @@ class Spot:
         result = [float(i) for i in result]
         return result
 
-
 class SpotPattern:
     '''Class to define spot pattern images acquired using the flat LOGOS panels
     '''
@@ -142,7 +266,7 @@ class SpotPattern:
             input('Press any key to continue')
             raise SystemExit
 
-        image_dir = os.path.dirname(image_path)
+        image_dir = os.path.dirname(image_path) # the directory to get the image
 
         if not os.path.isfile(os.path.join(image_dir, 'activescript.txt')):
             print('No active script detected for this spot pattern')
@@ -155,97 +279,69 @@ class SpotPattern:
         self.outputpath = os.path.join(image_dir, 'output.txt')
         self.output = Output(self.outputpath)
         self.image = cv2.imread(image_path)
+        self.range = 60
 
         if self.activescript.device == '4000':
             self.image = cv2.rotate(self.image, cv2.ROTATE_90_COUNTERCLOCKWISE)
 
+        self.pixel_loc, self.logos_pos = self.find_bmp_spot(image_path)
+        self.spot_arr = self.find_bmp_spot_arr()
+
+        spt = {key: 0  for key in self.spot_arr.keys()}
+        for s in self.spot_arr.keys():
+            spt[s] = Spot(self.spot_arr[s], self.pixel_loc[s], self.activescript)
+
+        self.spot = spt
+
+
+    def find_bmp_spot(self, image_path):
+        mloc = self.output.mloc
+
+        if self.activescript.device == "4000":
+            npixel_y = 1600
+            npixel_x = 1200
+            resol_x = self.activescript.CameraVRatio
+            resol_y = self.activescript.CameraHRatio
+
+        elif self.activescript.device == "3000":
+            npixel_y = 1200
+            npixel_x = 1200
+            resol_y = self.activescript.CameraVRatio
+            resol_x = self.activescript.CameraHRatio
+
+        # convert the x-y axes from pixel to image coordinates
+        y_mm = [((i/resol_y) - (npixel_y/2)/resol_y) for i in range(1, npixel_y+1)]
+        x_mm = [((i/resol_x) - (npixel_x/2)/resol_x) for i in range(1, npixel_x+1)]
+
+        # find the pixel coordinate of each spot from the bmp image
+        ind_key = {key:[0, 0] for key in mloc.keys()}
+        for key in mloc:
+            if mloc[key][0] == mloc[key][1]:
+                ind_key[key][0] = 0
+                ind_key[key][1] = 0
+            subtract_x = [abs(mloc[key][0] - ix) for ix in x_mm]
+            subtract_y = [abs(mloc[key][1] - iy) for iy in y_mm]
+            ind_key[key][0] = subtract_x.index(min(subtract_x))
+            ind_key[key][1] = subtract_y.index(min(subtract_y))
+
+        # convert the spot coordinates from pixel to image coordinates
+        logos_pos = {key:[(arr[0]/resol_x) - (npixel_x/2)/(resol_x) , (arr[1]/resol_y) - (npixel_y/2)/(resol_y) ] for key, arr in ind_key.items()}
+
+        return ind_key, logos_pos
+
+    def find_bmp_spot_arr(self):
+        single_slice = self.image[:, :, 0]
+        d = self.range
+
+        # print(f'pixel_loc: {self.pixel_loc}')
+
+        spot_arr = {key:[0] for key in self.output.mloc.keys()}
+        for key in self.output.mloc.keys():
+            # print(f'key:{key} || left:{self.pixel_loc[key][0]} || right:{self.pixel_loc[key][0]+d}, low:{self.pixel_loc[key][1]}, up: {self.pixel_loc[key][1]+d}')
+            spot_arr[key] = single_slice[self.pixel_loc[key][1]- d: self.pixel_loc[key][1]+d+1 , self.pixel_loc[key][0]-d:self.pixel_loc[key][0]+d+1 ]
+
+        return spot_arr
+
+
     def __str__(self):
         return f'path: {self.path}\nact_scr_path: {self.activescriptpath}'
-
-
-def spot_to_profiles(myimage, activescript):
-    '''Extract cartesian and diagonal profiles from spot array'''
-    blurred = cv2.GaussianBlur(myimage, (11, 11), 0)
-    normed = blurred/blurred.max()
-
-    (min_val, max_val, min_loc, max_loc) = cv2.minMaxLoc(blurred)
-    horprof = [range(len(normed[0])), normed[max_loc[1]]]
-    vertprof = [range(len(normed)), [x[max_loc[0]] for x in normed]]
-    spin_ccw = rotate_image(normed, 45, max_loc)
-    spin_cw = rotate_image(normed, -45, max_loc)
-    # Top left to bottom right profile
-    tl_br = [range(len(spin_ccw[0])), spin_ccw[max_loc[1]]]
-    # Bottom left to top right profile
-    bl_tr = [range(len(spin_cw[0])), spin_cw[max_loc[1]]]
-    horprof[0] = [x/activescript.CameraHRatio for x in horprof[0]]
-    vertprof[0] = [x/activescript.CameraVRatio for x in vertprof[0]]
-
-    # Diagonal profile correction to distance from pixel size uses mean of xy
-    diag_ratio = (activescript.CameraHRatio + activescript.CameraVRatio) / 2
-    tl_br[0] = [x/diag_ratio for x in tl_br[0]]
-    bl_tr[0] = [x/diag_ratio for x in bl_tr[0]]
-
-    return horprof, vertprof, tl_br, bl_tr
-
-
-def gradient_fetch(profile, lowthresh, highthresh):
-    '''Takes a gaussian profile as input and returns the gradient on the left
-    and right side of the peak between the high threshold and low threshold
-    '''
-    left_low = [n for n, i in enumerate(profile[1]) if i > lowthresh][0]
-    right_low = [n for n, i in enumerate(profile[1]) if i > lowthresh][-1]
-    left_high = [n for n, i in enumerate(profile[1]) if i > highthresh][0]
-    right_high = [n for n, i in enumerate(profile[1]) if i > highthresh][-1]
-    lgrad = 100*(highthresh-lowthresh)/(profile[0][left_high] - profile[0][left_low])
-    rgrad = 100*(highthresh-lowthresh)/(profile[0][right_high] - profile[0][right_low])
-    return lgrad, rgrad
-
-
-def fwhm_fetch(profile):
-    '''Returns FWHM for a gaussian profile'''
-    norm_profile = profile/max(profile[1])
-    fwhml = [n for n, i in enumerate(norm_profile[1]) if i > 0.5][0]
-    fwhmr = [n for n, i in enumerate(norm_profile[1]) if i > 0.5][-1]
-    fwhm = profile[0][fwhmr]-profile[0][fwhml]
-    return fwhm
-
-
-def select_acquisition_info():
-    gantry = eg.choicebox('Please select room',
-                          'Gantry',
-                          ['Gantry 1', 'Gantry 2',
-                           'Gantry 3', 'Gantry 4'
-                           ]
-                          )
-
-    energy = eg.integerbox(msg='Energy',
-                           title='Select energy of acquired image',
-                           lowerbound=70,
-                           upperbound=245
-                           )
-    gantry_angle = eg.integerbox(msg='Gantry Angle',
-                                 title='Select angle of acquisition',
-                                 lowerbound=0,
-                                 upperbound=360
-                                 )
-    operators = ['AB', 'AK', 'AGo', 'AGr', 'AM', 'AJP', 'AT', 'AW',
-                 'CB', 'CG', 'KC', 'PI', 'SC', 'SG', 'TNC', 'VMA', 'VR']
-
-    operator = eg.choicebox('Select Operator',
-                            'Operator',
-                            operators
-                            )
-    return [gantry, energy, gantry_angle, operator]
-
-
-def write_to_results_wb(results_loc, results):
-    wb = openpyxl.load_workbook(results_loc)
-    ws = wb.worksheets[0]
-    ws.append(results)
-    wb.save(results_loc)
-
-# output = Output('C:\\Users\\cgillies.UCLH\\Desktop\\Coding\\Test_Data\\LOGOS\\Spot_Grids\\2021_0309_0045\\00000001.tif')
-# print(output.datetime)
-
-# spotpat = SpotPattern('C:\\Users\\csmgi\\Desktop\\Work\\Coding\\Test-Data\\LOGOS\\Spot_Grids\\2021_0309_0045\\00000001.tif')
-# print(spotpat)
