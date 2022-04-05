@@ -1,9 +1,13 @@
 constants.py
-Spot_Grid_Testing.accdb
 test.py
-xrv4000.pptx
-spot_data_visualisation.xlsx
 pysimplegui.py
+
+Spot_Grid_Testing.accdb
+
+xrv4000.pptx
+
+spot_data_visualisation.xlsx
+sample_gaussian.xlsx
+
 dummyData/
 __pycache__/
-sample_gaussian.xlsx
