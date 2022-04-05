@@ -34,7 +34,6 @@ else:
     prof_path = []
     gr_path  = []
 
-
 def make_window(theme):
     sg.theme(theme)
     # warning = [sg.Text('Operator 2 is required when Operator 1 cannot sign off the spot grid QA.')]
@@ -264,8 +263,6 @@ def main():
 
 
         return
-
-
 
 
 
