@@ -307,13 +307,15 @@ def fetch_parameters(arr_mm, nor_amp, raw_amp):
     # -----------------------------------------------------------------------------------
     # # --------------------------debug for gradient ratio-------------------------------
     # -----------------------------------------------------------------------------------
-    deb_r = rgrad/lgrad
-
-    if deb_r < -1.1 or deb_r > -0.9:
-
-        print(f'>>> deb_r :{deb_r}')
-        print(f'ind_l: {ind_l} , ind_r: {ind_r}')
-        print(f'outcome: {outcome}')
+    # deb_r = rgrad/lgrad
+    #
+    # if deb_r < -1.1 or deb_r > -0.9:
+    #
+    #     print(f'>>> deb_r :{deb_r}')
+    #     print(f'ind_l: {ind_l} , ind_r: {ind_r}')
+    #     print(f'outcome: {outcome}')
+    #
+    #     print(f'nor_amp: {nor_amp}')
 
 
 
