@@ -156,30 +156,30 @@ def spot_data(gui_values, spotpatterns):
             # -----------------------------------------------------------------------------------
             # # --------------------------debugging for gradiet ratio----------------------------
             # -----------------------------------------------------------------------------------
-            gr = [rh, rv, rbl, rtl]
-            profile_name = ['horprof','vertprof','bl_tr','tl_br']
-            for i, r in enumerate(gr):
-                if r > -0.9 or r < -1.1:
-                    if profile_name[i] == 'horprof':
-                        profile_obj = spot[loc].horprof_p
-                    elif profile_name[i] == 'vertprof':
-                        profile_obj = spot[loc].vertprof_p
-                    elif profile_name[i] == 'bl_tr':
-                        profile_obj = spot[loc].bl_tr_p
-                    elif profile_name[i] == 'tl_br':
-                        profile_obj = spot[loc].tl_br_p
-                    abn_gr.extend([[e, loc, profile_name[i] +'_mm', profile_obj[0]], [e, loc, profile_name[i] + '_nor', profile_obj[1].tolist()], [e, loc, profile_name[i] + '_amp', profile_obj[2].tolist()]])
+            # gr = [rh, rv, rbl, rtl]
+            # profile_name = ['horprof','vertprof','bl_tr','tl_br']
+            # for i, r in enumerate(gr):
+            #     if r > -0.9 or r < -1.1:
+            #         if profile_name[i] == 'horprof':
+            #             profile_obj = spot[loc].horprof_p
+            #         elif profile_name[i] == 'vertprof':
+            #             profile_obj = spot[loc].vertprof_p
+            #         elif profile_name[i] == 'bl_tr':
+            #             profile_obj = spot[loc].bl_tr_p
+            #         elif profile_name[i] == 'tl_br':
+            #             profile_obj = spot[loc].tl_br_p
+            #         abn_gr.extend([[e, loc, profile_name[i] +'_mm', profile_obj[0]], [e, loc, profile_name[i] + '_nor', profile_obj[1].tolist()], [e, loc, profile_name[i] + '_amp', profile_obj[2].tolist()]])
             # -----------------------------------------------------------------------------------
         all_data.update({e: spot_results})
 
     # -----------------------------------------------------------------------------------
     # # --------------------------debugging for gradiet ratio----------------------------
     # -----------------------------------------------------------------------------------
-    if abn_gr:
-        # print(f'abn_gr : {abn_gr}')
-        df = pd.DataFrame(abn_gr)
-        df.to_excel('agr_profile.xlsx')
-        # columns = ['energy', 'spot', 'profile name', 'profile']
+    # if abn_gr:
+    #     # print(f'abn_gr : {abn_gr}')
+    #     df = pd.DataFrame(abn_gr)
+    #     df.to_excel('agr_profile.xlsx')
+    
     # -----------------------------------------------------------------------------------
 
     return all_data, device
