@@ -461,7 +461,7 @@ def plot_fwhm(df):
 
 
 
-    sns_color = sns.color_palette('pastel', len(pos))
+    sns_color = sns.color_palette('muted', len(pos))
     color_pos = {p:sns_color[i] for i, p in enumerate(pos)}
 
     exp_y = list(expect_fwhm.values())
@@ -476,13 +476,13 @@ def plot_fwhm(df):
 
     ax.plot(en, yl, linestyle = '--', color = '#E6DAA6' )
     ax.plot(en, yu, linestyle = '--', color = '#E6DAA6' )
-    ax.fill_between( en, yl, yu, color = '#F5F5DC' )
+    ax.fill_between( en, yl, yu, color = '#F5F5DC', alpha = 0.3 )
 
     for p in pos:
         pdf =  ndf.loc[p]
         x = list(pdf['energy'])
         y = list(pdf['mfwhm'])
-        ax.plot(x , y , markersize = 8, color = color_pos[p], marker = 'o',  label = p, linestyle= '', markeredgecolor = '#F0FFFF')
+        ax.plot(x , y , markersize = 5, color = color_pos[p], marker = 'o',  label = p, linestyle= '', markeredgecolor = '#F0FFFF')
 
 
     ax.plot( en, exp_y, 'k+', markersize = 10, label = 'expected FWHM')

@@ -150,58 +150,58 @@ class Output:
         return mloc, match
 
     # def flip_ls(self):
-
-        dl = [np.float(self.spots_xy[i][0]) - np.float(self.spots_xy[i-1][0]) for i in np.arange(1, self.no_of_spots + 1) if i !=1]
-        ds = [np.float(self.spots_xy[i][1]) - np.float(self.spots_xy[i-1][1]) for i in np.arange(1, self.no_of_spots + 1) if i !=1]
-
-        if abs(dl[0]) > abs(ds[0]): #scan along the long axis
-            ls_s = [i for i in np.arange(0, len(ds)) if abs(ds[i]) > sum(ds)/len(ds)]
-            mr = int(ceil(self.no_of_spots/(ls_s[0]+1))) #3, xrv4000
-            mc = ls_s[0]+1 #5, xrv4000
-            arr_l = np.zeros((mr, mc))
-            arr_s = np.zeros((mr, mc))
-
-            # for ind, key in enumerate(self.spots_xy):
-            for ir in np.arange(0, mr):
-                for ic in np.arange(0, mc):
-                    if ir*mc+ic+1 < self.no_of_spots:
-                        arr_l[ir, ic] = self.spots_xy.get(ir*mc+ic+1)[0]
-                        arr_s[ir, ic] = self.spots_xy.get(ir*mc+ic+1)[1]
-                    else:
-                        arr_l[ir, ic] = 0
-                        arr_s[ir, ic] = 0
-            if self.device == "4000":
-                rot_l = np.fliplr(arr_l).transpose()
-                rot_s = np.fliplr(arr_s).transpose()
-            else:
-                rot_l = arr_l
-                rot_s = arr_s
-
-        elif  abs(dl[0]) < abs(ds[0]):
-            print(f'scanning along the 4000 short axis. Have never tested this part of the script!')
-            ls_l = [i for i in np.arange(0, len(dl)) if abs(ds[i]) > sum(dl)/len(dl)]
-            mr = int(ceil(self.no_of_spots/(ls_s[0]+1))) #3, xrv4000
-            mc = ls_s[0]+1 #5
-            arr_l = np.zeros((mr, mc))
-            arr_s = np.zeros((mr, mc))
-
-            for ir in np.arange(0, mr):
-                for ic in np.arange(0, mc):
-                    if ir*mc+ic+1 < self.no_of_spots:
-                        arr_l[ir, ic] = self.spots_xy.get(ir*mc+ic+1)[0]
-                        arr_s[ir, ic] = self.spots_xy.get(ir*mc+ic+1)[1]
-                    else:
-                        arr_l[ir, ic] = 0
-                        arr_s[ir, ic] = 0
-
-            if self.device == "4000":
-                rot_l = np.flipUP(arr_l).transpose()
-                rot_s = np.flipIP(arr_s).transpose()
-            else:
-                rot_l = arr_l
-                rot_s = arr_s
-
-        return rot_l, rot_s
+    #
+    #     dl = [np.float(self.spots_xy[i][0]) - np.float(self.spots_xy[i-1][0]) for i in np.arange(1, self.no_of_spots + 1) if i !=1]
+    #     ds = [np.float(self.spots_xy[i][1]) - np.float(self.spots_xy[i-1][1]) for i in np.arange(1, self.no_of_spots + 1) if i !=1]
+    #
+    #     if abs(dl[0]) > abs(ds[0]): #scan along the long axis
+    #         ls_s = [i for i in np.arange(0, len(ds)) if abs(ds[i]) > sum(ds)/len(ds)]
+    #         mr = int(ceil(self.no_of_spots/(ls_s[0]+1))) #3, xrv4000
+    #         mc = ls_s[0]+1 #5, xrv4000
+    #         arr_l = np.zeros((mr, mc))
+    #         arr_s = np.zeros((mr, mc))
+    #
+    #         # for ind, key in enumerate(self.spots_xy):
+    #         for ir in np.arange(0, mr):
+    #             for ic in np.arange(0, mc):
+    #                 if ir*mc+ic+1 < self.no_of_spots:
+    #                     arr_l[ir, ic] = self.spots_xy.get(ir*mc+ic+1)[0]
+    #                     arr_s[ir, ic] = self.spots_xy.get(ir*mc+ic+1)[1]
+    #                 else:
+    #                     arr_l[ir, ic] = 0
+    #                     arr_s[ir, ic] = 0
+    #         if self.device == "4000":
+    #             rot_l = np.fliplr(arr_l).transpose()
+    #             rot_s = np.fliplr(arr_s).transpose()
+    #         else:
+    #             rot_l = arr_l
+    #             rot_s = arr_s
+    #
+    #     elif  abs(dl[0]) < abs(ds[0]):
+    #         print(f'scanning along the 4000 short axis. Have never tested this part of the script!')
+    #         ls_l = [i for i in np.arange(0, len(dl)) if abs(ds[i]) > sum(dl)/len(dl)]
+    #         mr = int(ceil(self.no_of_spots/(ls_s[0]+1))) #3, xrv4000
+    #         mc = ls_s[0]+1 #5
+    #         arr_l = np.zeros((mr, mc))
+    #         arr_s = np.zeros((mr, mc))
+    #
+    #         for ir in np.arange(0, mr):
+    #             for ic in np.arange(0, mc):
+    #                 if ir*mc+ic+1 < self.no_of_spots:
+    #                     arr_l[ir, ic] = self.spots_xy.get(ir*mc+ic+1)[0]
+    #                     arr_s[ir, ic] = self.spots_xy.get(ir*mc+ic+1)[1]
+    #                 else:
+    #                     arr_l[ir, ic] = 0
+    #                     arr_s[ir, ic] = 0
+    #
+    #         if self.device == "4000":
+    #             rot_l = np.flipUP(arr_l).transpose()
+    #             rot_s = np.flipIP(arr_s).transpose()
+    #         else:
+    #             rot_l = arr_l
+    #             rot_s = arr_s
+    #
+    #     return rot_l, rot_s
 
 
 class Profile:
@@ -226,6 +226,15 @@ class Spot:
 
         self.pixel_loc = pixel_loc
         horprof, vertprof, tl_br, bl_tr = spf.spot_to_profiles(spot_array, pixel_loc, activescript)
+
+        # debug the gradient ratio
+        # -----------------------------------------------
+        # get the profile
+        self.horprof_p = list(horprof)
+        self.vertprof_p = list(vertprof)
+        self.tl_br_p = list(tl_br)
+        self.bl_tr_p = list(bl_tr)
+        # -----------------------------------------------
 
         self.horprof = Profile(horprof)
         self.vertprof = Profile(vertprof)
@@ -308,11 +317,11 @@ class SpotPattern:
             resol_y = self.activescript.CameraVRatio
             resol_x = self.activescript.CameraHRatio
 
-        # convert the x-y axes from pixel to image coordinates
+        # ## convert the x-y axes from pixel to image coordinates
         y_mm = [((i/resol_y) - (npixel_y/2)/resol_y) for i in range(1, npixel_y+1)]
         x_mm = [((i/resol_x) - (npixel_x/2)/resol_x) for i in range(1, npixel_x+1)]
 
-        # find the pixel coordinate of each spot from the bmp image
+        # ## find the pixel coordinate of each spot from the bmp image
         ind_key = {key:[0, 0] for key in mloc.keys()}
         for key in mloc:
             if mloc[key][0] == mloc[key][1]:
@@ -323,7 +332,7 @@ class SpotPattern:
             ind_key[key][0] = subtract_x.index(min(subtract_x))
             ind_key[key][1] = subtract_y.index(min(subtract_y))
 
-        # convert the spot coordinates from pixel to image coordinates
+        # ## convert the spot coordinates from pixel to image coordinates
         logos_pos = {key:[(arr[0]/resol_x) - (npixel_x/2)/(resol_x) , (arr[1]/resol_y) - (npixel_y/2)/(resol_y) ] for key, arr in ind_key.items()}
 
         return ind_key, logos_pos
@@ -332,11 +341,8 @@ class SpotPattern:
         single_slice = self.image[:, :, 0]
         d = self.range
 
-        # print(f'pixel_loc: {self.pixel_loc}')
-
         spot_arr = {key:[0] for key in self.output.mloc.keys()}
         for key in self.output.mloc.keys():
-            # print(f'key:{key} || left:{self.pixel_loc[key][0]} || right:{self.pixel_loc[key][0]+d}, low:{self.pixel_loc[key][1]}, up: {self.pixel_loc[key][1]+d}')
             spot_arr[key] = single_slice[self.pixel_loc[key][1]- d: self.pixel_loc[key][1]+d+1 , self.pixel_loc[key][0]-d:self.pixel_loc[key][0]+d+1 ]
 
         return spot_arr

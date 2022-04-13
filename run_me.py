@@ -115,13 +115,17 @@ def spot_data(gui_values, spotpatterns):
     en =  sorted([int(key) for key in spotpatterns.keys()], reverse = True)
     all_data = {}
 
+    # debug abnormal gradient ratio
+    abn_gr = []
+
     for e in en:
         mea_spot_loc = spotpatterns[str(e)].output.spots_info
         device = 'XRV-' + spotpatterns[str(e)].output.device
         mloc = spotpatterns[str(e)].output.mloc
         spot = spotpatterns[str(e)].spot
         loc_names = list(mea_spot_loc.keys()) # list of spot position name corresponding to the spot grid
-        # print(f'loc_names : {loc_names}')
+
+
 
         # create an empty nested list to store the spot data
         spot_results = [[] for i in range(0, len(loc_names))]
@@ -135,17 +139,48 @@ def spot_data(gui_values, spotpatterns):
 
             # add the rgrad, lgrad, fwhm of the horizontal profiles
             spot_results[i].extend([spot[loc].horprof.rgrad, spot[loc].horprof.lgrad, spot[loc].horprof.fwhm] )
+            rh = spot[loc].horprof.rgrad /spot[loc].horprof.lgrad
 
             # add the rgrad, lgrad, fwhm of the vertical profiles
             spot_results[i].extend([spot[loc].vertprof.rgrad, spot[loc].vertprof.lgrad, spot[loc].vertprof.fwhm] )
+            rv = spot[loc].vertprof.rgrad /spot[loc].vertprof.lgrad
 
             # add the rgrad, lgrad, fwhm of the bltr profiles
             spot_results[i].extend([spot[loc].bl_tr.rgrad, spot[loc].bl_tr.lgrad, spot[loc].bl_tr.fwhm] )
+            rbl = spot[loc].bl_tr.rgrad /spot[loc].bl_tr.lgrad
 
             # add the rgrad, lgrad, fwhm of the tl_br profiles
             spot_results[i].extend([spot[loc].tl_br.rgrad,  spot[loc].tl_br.lgrad,  spot[loc].tl_br.fwhm] )
+            rtl = spot[loc].tl_br.rgrad /spot[loc].tl_br.lgrad
 
+            # -----------------------------------------------------------------------------------
+            # # --------------------------debugging for gradiet ratio----------------------------
+            # -----------------------------------------------------------------------------------
+            gr = [rh, rv, rbl, rtl]
+            profile_name = ['horprof','vertprof','bl_tr','tl_br']
+            for i, r in enumerate(gr):
+                if r > -0.9 or r < -1.1:
+                    if profile_name[i] == 'horprof':
+                        profile_obj = spot[loc].horprof_p
+                    elif profile_name[i] == 'vertprof':
+                        profile_obj = spot[loc].vertprof_p
+                    elif profile_name[i] == 'bl_tr':
+                        profile_obj = spot[loc].bl_tr_p
+                    elif profile_name[i] == 'tl_br':
+                        profile_obj = spot[loc].tl_br_p
+                    abn_gr.extend([[e, loc, profile_name[i] +'_mm', profile_obj[0]], [e, loc, profile_name[i] + '_nor', profile_obj[1].tolist()], [e, loc, profile_name[i] + '_amp', profile_obj[2].tolist()]])
+            # -----------------------------------------------------------------------------------
         all_data.update({e: spot_results})
+
+    # -----------------------------------------------------------------------------------
+    # # --------------------------debugging for gradiet ratio----------------------------
+    # -----------------------------------------------------------------------------------
+    if abn_gr:
+        # print(f'abn_gr : {abn_gr}')
+        df = pd.DataFrame(abn_gr)
+        df.to_excel('agr_profile.xlsx')
+        # columns = ['energy', 'spot', 'profile name', 'profile']
+    # -----------------------------------------------------------------------------------
 
     return all_data, device
 
@@ -155,53 +190,26 @@ def main():
     while True:
         event, values = window.read() #comment off to test
 
-# ## | --------------------- |
-# ## | --- Do not delete --- |
-# ## | --------------------- |
+# -----------------------------------------------------------------------------------
+# # ------------------------------------ debug---------------------------------------
+# -----------------------------------------------------------------------------------
         # event = 'Submit'
 
         # values = {'-person1-': 'KC', '-person2-': 'TNC', '-gantry-': '3', '-gantry_angle-': '0', '-pro_en_1-': '70', '-bmp_loc_1-': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/my_spot_analysis/dummyData/G3_XRV4000_2022_03_03/run01_zero1/2022_0303_0001_70/00000001.bmp', 'Browse': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/my_spot_analysis/dummyData/G3_XRV4000_2022_03_03/run01_zero1/2022_0303_0001_70/00000001.bmp', '-pro_en_2-': '100', '-bmp_loc_2-': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/my_spot_analysis/dummyData/G3_XRV4000_2022_03_03/run01_zero1/2022_0303_0002_100/00000001.bmp', 'Browse0': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/my_spot_analysis/dummyData/G3_XRV4000_2022_03_03/run01_zero1/2022_0303_0002_100/00000001.bmp', '-pro_en_3-': '150', '-bmp_loc_3-': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/my_spot_analysis/dummyData/G3_XRV4000_2022_03_03/run01_zero1/2022_0303_0003_150/00000001.bmp', 'Browse1': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/my_spot_analysis/dummyData/G3_XRV4000_2022_03_03/run01_zero1/2022_0303_0003_150/00000001.bmp', '-pro_en_4-': '200', '-bmp_loc_4-': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/my_spot_analysis/dummyData/G3_XRV4000_2022_03_03/run01_zero1/2022_0303_0004_200/00000001.bmp', 'Browse2': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/my_spot_analysis/dummyData/G3_XRV4000_2022_03_03/run01_zero1/2022_0303_0004_200/00000001.bmp', '-pro_en_5-': '240', '-bmp_loc_5-': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/my_spot_analysis/dummyData/G3_XRV4000_2022_03_03/run01_zero1/2022_0303_0005_240/00000001.bmp', 'Browse3': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/my_spot_analysis/dummyData/G3_XRV4000_2022_03_03/run01_zero1/2022_0303_0005_240/00000001.bmp', '-comment-': ''}
 
-        # print(f'event: {event}')
-        # print(f'values: {values}')
+         # ## C:\Users\KAWCHUNG\OneDrive - NHS\python_code\dummyData\2022_01_04_xrv3000_G1_VR
+        values = {'-person1-': 'VR', '-person2-': '', '-gantry-': '1', '-gantry_angle-': '0', '-pro_en_1-': '70', '-bmp_loc_1-': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/dummyData/2022_01_04_xrv3000_G1_VR/0_240_2022_0104_0011/00000001.bmp', 'Browse': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/dummyData/2022_01_04_xrv3000_G1_VR/0_240_2022_0104_0011/00000001.bmp', '-pro_en_2-': '100', '-bmp_loc_2-': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/dummyData/2022_01_04_xrv3000_G1_VR/0_200_2022_0104_0012/00000001.bmp', 'Browse0': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/dummyData/2022_01_04_xrv3000_G1_VR/0_200_2022_0104_0012/00000001.bmp', '-pro_en_3-': '150', '-bmp_loc_3-': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/dummyData/2022_01_04_xrv3000_G1_VR/0_150_2022_0104_0013/00000001.bmp', 'Browse1': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/dummyData/2022_01_04_xrv3000_G1_VR/0_150_2022_0104_0013/00000001.bmp', '-pro_en_4-': '200', '-bmp_loc_4-': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/dummyData/2022_01_04_xrv3000_G1_VR/0_100_2022_0104_0014/00000001.bmp', 'Browse2': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/dummyData/2022_01_04_xrv3000_G1_VR/0_100_2022_0104_0014/00000001.bmp', '-pro_en_5-': '240', '-bmp_loc_5-': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/dummyData/2022_01_04_xrv3000_G1_VR/0_70_2022_0104_0015/00000001.bmp', 'Browse3': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/dummyData/2022_01_04_xrv3000_G1_VR/0_70_2022_0104_0015/00000001.bmp', '-comment-': ''}
 
-# ## | --------------------- |
-# ## | --- for debugging  -- |
-# ## | --------------------- |
+        print(f'values: {values}')
 
-
-        spotpatterns = {}
-        if event == 'Submit' and values['-gantry-'] != '' and values['-gantry_angle-'] != '' and values['-person1-'] != '' :
-            en = []
-            bmp_dir = []
-            for i in range(1,6):
-                str1 = '-pro_en_%s-' % str(i)
-                str2 = '-bmp_loc_%s-' % str(i)
-                if values[str1] not in en:
-                    en.append(values[str1])
-                else:
-                    sg.popup('You have entred %s MeV twice! Please have a look at the Proton energy column!' % str(values[str1]))
-
-                if values[str2] not in bmp_dir:
-                    bmp_dir.append(values[str2])
-                else:
-                    sg.popup('Double check your bmp location column! Duplicated entry detected' )
-                    break # break the loop when the same bmp location is entred, at least, twice.
-
-                # create spotpattern objects in a Dictionary
-                spotpatterns.update({values[str1]: spm.SpotPattern(values[str2])})
-        else:
-            sg.popup('ERROR MESSAGE!','You hit SUBMIT but either your Gantry, Gantry angle and Operator 1 is empty. Please have a look and try again!' )
-            break
-
-
-        all_data, device= spot_data(values, spotpatterns)
-
-        # get the operators
+# -----------------------------------------------------------------------------------
+# # ------------------------------------ debug---------------------------------------
+# -----------------------------------------------------------------------------------
+        # ## get the operators
         p1 = values['-person1-']
         p2 = values['-person2-']
 
-        # change directory and save data
+        # ## change directory and save data
         path = values['-bmp_loc_1-'].split(os.sep)
         result_folder = 'result'
 
@@ -220,7 +228,44 @@ def main():
             os.mkdir(result_folder)
             os.chdir(result_folder)
 
-        # start analysis
+        # ## reject duplicated operators
+        if values['-person1-'] == values['-person2-']:
+            print(f' >>> same operator 1 and operator 2! That is NOT okay.')
+            break
+
+        # ## start analysis when gantry, gantry angle and operator(s) are correctly filled.
+        spotpatterns = {}
+        if event == 'Submit' and values['-gantry-'] != '' and values['-gantry_angle-'] != '' and values['-person1-'] != '' :
+            en = []
+            bmp_dir = []
+            for i in range(1,6):
+                str1 = '-pro_en_%s-' % str(i)
+                str2 = '-bmp_loc_%s-' % str(i)
+                if values[str1] not in en:
+                    en.append(values[str1])
+                else:
+                    sg.popup('You have entred %s MeV twice! Please have a look at the Proton energy column!' % str(values[str1]))
+                    break
+
+                if values[str2] not in bmp_dir:
+                    bmp_dir.append(values[str2])
+                else:
+                    sg.popup('Double check your bmp location column! Duplicated entry detected' )
+                    break # break the loop when the same bmp location is entred, at least, twice.
+                    sg.WIN_CLOSED
+
+                # ## create spotpattern objects in a Dictionary
+                spotpatterns.update({values[str1]: spm.SpotPattern(values[str2])})
+        else:
+            sg.popup('ERROR MESSAGE!','You hit SUBMIT but either your Gantry, Gantry angle and Operator 1 is empty. Please have a look and try again!' )
+            break
+
+
+        all_data, device= spot_data(values, spotpatterns)
+
+
+
+        # ## start analysis
         df = []
         for key in all_data.keys():
             df.extend(all_data[key][:])
@@ -228,15 +273,15 @@ def main():
         df = pd.DataFrame(df, columns = db_cols)
         df = spf.calc_shifts(df, device)
 
-        # output data to excel file
+        # ## output data to excel file
         df.to_excel('result.xlsx')
 
-        # absolute plot
+        # ## absolute plot
         fg.plot_spot_grid(df, device, tolerance = 2)
         fg.plot_shifts(df, device, tolerance = 2)
         fg.plot_shifts_by_energy(df, device, tolerance =2 )
         fg.plot_shifts_by_pos(df, device, tolerance = 2 )
-        #
+
         # # relative plot
         fg.plot_spot_grid(df, device, tolerance=1)
         fg.plot_shifts(df, device, tolerance=1)
@@ -253,7 +298,6 @@ def main():
         window.close()
 
         # ## Data to proton database
-
         window2 = make_window_after_reviewing_data(theme)
         event2, values2 = window2.read()
 

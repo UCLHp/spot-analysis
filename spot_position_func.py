@@ -110,10 +110,10 @@ def rotate_image(array, angle, pivot):
     '''Function to rotate an array CCW a given angle around a defined axis
     inputs:
     array - 2D image structure (numpy array )'''
-    # Add 0 on both axis such that the pivot is at the centre of the array
+    # ## Add 0 on both axis such that the pivot is at the centre of the array
     padx = [array.shape[1] - pivot[0], pivot[0]]
     pady = [array.shape[0] - pivot[1], pivot[1]]
-    # Add padding to array
+    # ## Add padding to array
     array_p = np.pad(array, [pady, padx], 'constant')
     array_r = ndimage.rotate(array_p, angle, reshape=False)
     return array_r[pady[0]:-pady[1], padx[0]:-padx[1]]
@@ -130,14 +130,14 @@ def spot_to_profiles_old(myimage, activescript):
     vertprof = [range(len(normed)), [x[max_loc[0]] for x in normed]]
     spin_ccw = rotate_image(normed, 45, max_loc)
     spin_cw = rotate_image(normed, -45, max_loc)
-    # Top left to bottom right profile
+    # ## Top left to bottom right profile
     tl_br = [range(len(spin_ccw[0])), spin_ccw[max_loc[1]]]
-    # Bottom left to top right profile
+    # ## Bottom left to top right profile
     bl_tr = [range(len(spin_cw[0])), spin_cw[max_loc[1]]]
     horprof[0] = [x/activescript.CameraHRatio for x in horprof[0]]
     vertprof[0] = [x/activescript.CameraVRatio for x in vertprof[0]]
 
-    # Diagonal profile correction to distance from pixel size uses mean of xy
+    # ## Diagonal profile correction to distance from pixel size uses mean of xy
     diag_ratio = (activescript.CameraHRatio + activescript.CameraVRatio) / 2
     tl_br[0] = [x/diag_ratio for x in tl_br[0]]
     bl_tr[0] = [x/diag_ratio for x in bl_tr[0]]
@@ -158,20 +158,24 @@ def spot_to_profiles(myimage, pixel_loc, activescript):
 
     d = int(len(myimage[0])/2)
 
-    # horizontal profile
-    # h_arr = range(pixel_loc[0]-d, pixel_loc[0]+d, 1)
+    # ## horizontal profile
     h_arr = range(len(normed[0]))
+    mh = max(normed[max_loc[1]]) # normalised the profile
     horprof = [pixel2mm(h_arr, activescript, 'x'), normed[max_loc[1]], myimage[max_loc[1]]]
 
-    # vertical profile
-    # v_arr = range(pixel_loc[1]-d, pixel_loc[1]+d, 1)
+    # ## vertical profile
     v_arr = range(len(normed))
+    mv = max(normed[max_loc[0]])
     vertprof = [pixel2mm(v_arr, activescript, 'y'), normed[max_loc[0]], myimage[max_loc[0]]]
 
+    # ##  top left to bottom right profile
     tl_arr = range(len(normed))
+    ml =  max(normed.diagonal())
     tl_br = [pixel2mm(tl_arr, activescript, 'd'), normed.diagonal(), myimage.diagonal() ]
 
+    # ##  top right to bottom left profile
     tr_arr = range(len(normed))
+    mr =  max(np.fliplr(normed).diagonal())
     tr_bl =  [pixel2mm(tr_arr, activescript, 'd'), np.fliplr(normed).diagonal(), np.fliplr(myimage).diagonal()]
 
     return horprof, vertprof, tl_br, tr_bl
@@ -207,68 +211,90 @@ def pixel2mm(pixel_arr, activescript, prof_dir):
 
     return val
 
-def fetch_parameters(arr_mm, nor_amp, raw_amp):
+# ##  ---------------- groups of fetch parameter functions ------------------------
+def find_indices(percent, arr_mm, nor_amp,  raw_amp):
+    ''' use the indice corresponding to the 0.8/0.2/0.5 normalised amplitude
+    ind_l >> index for the left side of the profile
+    ind_r >> index for the right side of the profile '''
 
-    def find_indices(percent, arr_mm, nor_amp):
-        ''' use the indice corresponding to the 0.8/0.2/0.5 normalised amplitude
-        ind_l >> index for the left side of the profile
-        ind_r >> index for the right side of the profile '''
-        lsv = [abs(v-percent)**2 for i, v in enumerate(nor_amp)]
+    nor_p = [i/max(nor_amp.tolist()) for i in nor_amp.tolist()]
 
-        pair_lsv =  sorted(zip(arr_mm, lsv), key = lambda x:x[1])
+    # ## find the index for the centre
+    i_centre = nor_p.index(max(nor_p))
 
-        tol = 3 # tolerance to accept the minimum point
+    left_prof = nor_p[:i_centre]
+    right_prof = nor_p[i_centre:]
 
-        wi = []
-        for i in range(0, len(pair_lsv)):
-            if abs(pair_lsv[i][0] - pair_lsv[i+1][0]) > tol:
-                wi.append(i)
-                if len(wi) ==2:
-                    break
+    above_percent = [] # find the items that are higher than the percent.
+    for i in nor_p:
+        if i > float(percent):
+            above_percent.append(i)
 
-        if pair_lsv[wi[0]][0] < pair_lsv[wi[1]][0]:
-            ind_l = arr_mm.index(pair_lsv[wi[0]][0])
-            ind_r = arr_mm.index(pair_lsv[wi[1]][0])
+    ind_l = left_prof.index(above_percent[0])
+    ind_r = i_centre + right_prof.index(above_percent[-1])
+
+    return ind_l, ind_r
+
+def interpolate(p, x_arr, y_arr):
+    ''' To interpolate p from two points
+        p = percent.
+        x_arr, y_arr = two items in a list '''
+
+    s = (float(y_arr[1]) - float(y_arr[0]))/(float(x_arr[1]) - float(x_arr[0]))
+    c = float(y_arr[1]) - float(s*x_arr[1])
+
+    val = s*p+c
+
+    return val
+
+def interpol_point(percent, ind, arr_mm, nor_amp, raw_amp):
+    ''' find the point (x,y) at 0.8/0.2/0.5 using interpolation
+        mm : millimeter in image coordinates
+        amp :  the profile amplitude in grey scale
+        2022-04-12: we decided to use nor_amp (normalised to its max) profile to get all 0.8, 0.2, 0.5 points '''
+
+    # nor_p = [i/max(raw_amp.tolist()) for i in raw_amp.tolist()]
+    nor_p = [i/max(nor_amp.tolist()) for i in nor_amp.tolist()]
+    i_centre = nor_p.index(max(nor_p))
+
+    if arr_mm[ind] < arr_mm[i_centre] : # left gradient
+        if nor_p[ind]>percent:
+            arr = [arr_mm[ind-1], arr_mm[ind]]
+            nor = [nor_p[ind-1], nor_p[ind]]
+            raw = [raw_amp[ind-1], raw_amp[ind]]
         else:
-            ind_r = arr_mm.index(pair_lsv[wi[0]][0])
-            ind_l = arr_mm.index(pair_lsv[wi[1]][0])
+            arr = [arr_mm[ind], arr_mm[ind+1]]
+            nor = [nor_p[ind], nor_p[ind+1]]
+            raw = [raw_amp[ind], raw_amp[ind+1]]
+    else: # right gradient
+        if nor_p[ind]>percent:
+            arr = [arr_mm[ind], arr_mm[ind+1]]
+            nor = [nor_p[ind], nor_p[ind+1]]
+            raw = [raw_amp[ind], raw_amp[ind+1]]
+        else:
+            arr = [arr_mm[ind-1], arr_mm[ind]]
+            nor = [nor_p[ind-1], nor_p[ind]]
+            raw = [raw_amp[ind-1], raw_amp[ind]]
+
+    # mm = np.interp(percent, nor, arr)
+    # amp = np.interp(percent, nor, raw)
+
+    mm = interpolate(percent, nor, arr)
+    amp = interpolate(percent, nor, raw)
+
+    return [mm, amp]
+
+def fetch_parameters(arr_mm, nor_amp, raw_amp):
+    ''' arr_mm :  convert pixel to mm using the resolution
+        nor_amp :  profile from 2d Gaussian filtered spot data (normalised to the spot maximum in a 2d array)
+        raw_amp : profile from 2d spot raw data'''
 
 
-        return ind_l, ind_r
-
-    def interpol_point(percent, ind, arr_mm, nor_amp, raw_amp):
-        ''' find the point (x,y) at 0.8/0.2/0.5 using interpolation
-            mm : millimeter in image coordinates
-            amp :  the profile amplitude in grey scale '''
-        i_centre = list(nor_amp).index(max(list(nor_amp)))
-        if arr_mm[ind] < arr_mm[i_centre] : # left gradient
-            if nor_amp[ind]>percent:
-                arr = [arr_mm[ind-1], arr_mm[ind]]
-                nor = [nor_amp[ind-1], nor_amp[ind]]
-                raw = [raw_amp[ind-1], raw_amp[ind]]
-            else:
-                arr = [arr_mm[ind], arr_mm[ind+1]]
-                nor = [nor_amp[ind], nor_amp[ind+1]]
-                raw = [raw_amp[ind], raw_amp[ind+1]]
-        else: # right gradient
-            if nor_amp[ind]>percent:
-                arr = [arr_mm[ind], arr_mm[ind+1]]
-                nor = [nor_amp[ind], nor_amp[ind+1]]
-                raw = [raw_amp[ind], raw_amp[ind+1]]
-            else:
-                arr = [arr_mm[ind-1], arr_mm[ind]]
-                nor = [nor_amp[ind-1], nor_amp[ind]]
-                raw = [raw_amp[ind-1], raw_amp[ind]]
-
-        mm = np.interp(percent, nor, arr)
-        amp = np.interp(mm, arr, raw)
-
-        return [mm, amp]
 
     percent = [0.8, 0.2, 0.5]
     outcome = {key:[[0], [0]] for key in percent}
     for i, p in enumerate(percent):
-        ind_l, ind_r = find_indices(p, arr_mm, nor_amp)
+        ind_l, ind_r = find_indices(p, arr_mm, nor_amp, raw_amp)
         outcome[p][0] = interpol_point(p, ind_l, arr_mm, nor_amp, raw_amp)
         outcome[p][1] = interpol_point(p, ind_r, arr_mm, nor_amp, raw_amp)
 
@@ -277,6 +303,22 @@ def fetch_parameters(arr_mm, nor_amp, raw_amp):
     lgrad = (80-20)/(outcome[0.8][0][0] - outcome[0.2][0][0])
     rgrad = (80-20)/(outcome[0.8][1][0] - outcome[0.2][1][0])
     fwhm = outcome[0.5][1][0] - outcome[0.5][0][0]
+
+    # -----------------------------------------------------------------------------------
+    # # --------------------------debug for gradient ratio-------------------------------
+    # -----------------------------------------------------------------------------------
+    deb_r = rgrad/lgrad
+
+    if deb_r < -1.1 or deb_r > -0.9:
+
+        print(f'>>> deb_r :{deb_r}')
+        print(f'ind_l: {ind_l} , ind_r: {ind_r}')
+        print(f'outcome: {outcome}')
+
+
+
+    # -----------------------------------------------------------------------------------
+
 
     return lgrad, rgrad, fwhm
 
