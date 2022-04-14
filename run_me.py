@@ -179,7 +179,7 @@ def spot_data(gui_values, spotpatterns):
     #     # print(f'abn_gr : {abn_gr}')
     #     df = pd.DataFrame(abn_gr)
     #     df.to_excel('agr_profile.xlsx')
-    
+
     # -----------------------------------------------------------------------------------
 
     return all_data, device
@@ -230,7 +230,7 @@ def main():
 
         # ## reject duplicated operators
         if values['-person1-'] == values['-person2-']:
-            print(f' >>> same operator 1 and operator 2! That is NOT okay.')
+            print(f' >>> same operator 1 and operator 2! That is NOT okay. Analysis terminated.')
             break
 
         # ## start analysis when gantry, gantry angle and operator(s) are correctly filled.
@@ -238,26 +238,30 @@ def main():
         if event == 'Submit' and values['-gantry-'] != '' and values['-gantry_angle-'] != '' and values['-person1-'] != '' :
             en = []
             bmp_dir = []
+            rep_dir = []
             for i in range(1,6):
                 str1 = '-pro_en_%s-' % str(i)
                 str2 = '-bmp_loc_%s-' % str(i)
                 if values[str1] not in en:
                     en.append(values[str1])
                 else:
-                    sg.popup('You have entred %s MeV twice! Please have a look at the Proton energy column!' % str(values[str1]))
+                    sg.popup('You have entred %s MeV twice! Please have a look at the Proton energy column! Analysis terminated.' % str(values[str1]))
                     break
 
                 if values[str2] not in bmp_dir:
                     bmp_dir.append(values[str2])
                 else:
-                    sg.popup('Double check your bmp location column! Duplicated entry detected' )
+                    sg.popup('Double check your bmp location column! Duplicated entry detected. Analysis terminated.' )
+                    rep_dir.append(i)
                     break # break the loop when the same bmp location is entred, at least, twice.
-                    sg.WIN_CLOSED
 
-                # ## create spotpattern objects in a Dictionary
                 spotpatterns.update({values[str1]: spm.SpotPattern(values[str2])})
         else:
-            sg.popup('ERROR MESSAGE!','You hit SUBMIT but either your Gantry, Gantry angle and Operator 1 is empty. Please have a look and try again!' )
+            sg.popup('ERROR MESSAGE!','You hit SUBMIT but either your Gantry, Gantry angle and Operator 1 is empty. Analysis terminated.' )
+            break
+
+        # ##  break while loop if spotpatterns is empty
+        if rep_dir:
             break
 
 
