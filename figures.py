@@ -33,10 +33,11 @@ def plot_spot_grid(df, device, tolerance):
         tolerance = int (1mm or 2mm)
     """
 
-    title = "spot_grid (tolerance = %d mm)" % tolerance
+    title = "Absolute spot positions (%s mm tolerance)" % tolerance
     global b
     if tolerance ==1:
         b = 2.5
+        title = "Relative spot positions (%s mm tolerance)" % tolerance
 
 
     # predicted spot grid
@@ -107,10 +108,11 @@ def plot_shifts(df, device, tolerance):
         https://matplotlib.org/stable/gallery/lines_bars_and_markers/scatter_hist.html#sphx-glr-gallery-lines-bars-and-markers-scatter-hist-py
         https://jakevdp.github.io/PythonDataScienceHandbook/04.08-multiple-subplots.html
     """
-    title = "x-y-shifts_tol_%smm" % str(tolerance)
+    title = "Absolute shifts (%s mm tolerance)" % str(tolerance)
     global b
     if tolerance ==1:
         b = 2.5
+        title = "Relative shifts (%s mm tolerance)" % str(tolerance)
 
     # df = calc_shifts(df, device)
 
@@ -198,10 +200,12 @@ def plot_shifts_by_energy(df, device, tolerance):
         https://matplotlib.org/stable/gallery/lines_bars_and_markers/scatter_hist.html#sphx-glr-gallery-lines-bars-and-markers-scatter-hist-py
         https://jakevdp.github.io/PythonDataScienceHandbook/04.08-multiple-subplots.html
     """
-    title = "x-y-shifts_tol_%smm (by energy)" % str(tolerance)
+    title = "Absolute shifts (%s mm tolerance) - by energy" % str(tolerance)
     global b
     if tolerance ==1:
         b = 2.5
+        title = "Relative shifts (%s mm tolerance) - by energy" % str(tolerance)
+
 
     # df = calc_shifts(df, device)
 
@@ -289,10 +293,12 @@ def plot_shifts_by_pos(df, device, tolerance):
         https://matplotlib.org/stable/gallery/lines_bars_and_markers/scatter_hist.html#sphx-glr-gallery-lines-bars-and-markers-scatter-hist-py
         https://jakevdp.github.io/PythonDataScienceHandbook/04.08-multiple-subplots.html
     """
-    title = "x-y-shifts_tol_%smm (by position)" % str(tolerance)
+    title = "Absolute shifts (%s mm tolerance) - by position" % str(tolerance)
     global b
     if tolerance ==1:
         b = 2.5
+        title = "Relative shifts (%s mm tolerance) - by position" % str(tolerance)
+
 
     if device == 'XRV-4000':
         nrows = 5

@@ -104,8 +104,6 @@ def calc_shifts(df, device):
 
     return df
 
-
-
 def rotate_image(array, angle, pivot):
     '''Function to rotate an array CCW a given angle around a defined axis
     inputs:
@@ -179,7 +177,6 @@ def spot_to_profiles(myimage, pixel_loc, activescript):
     tr_bl =  [pixel2mm(tr_arr, activescript, 'd'), np.fliplr(normed).diagonal(), np.fliplr(myimage).diagonal()]
 
     return horprof, vertprof, tl_br, tr_bl
-
 
 def pixel2mm(pixel_arr, activescript, prof_dir):
     ''' to convert the pixel to image coordinates

@@ -14,21 +14,26 @@ from reportlab.lib.units import inch, cm
 
 from reportlab.lib import utils
 
+import constants as cs
+
 width, height = letter
+
+# expected FWHM from beam model data
+exp_fwhm = cs.expect_fwhm
 
 
 # doc = SimpleDocTemplate("report.pdf",pagesize=letter)
 
 # class to rotate the image
 # when you rotate the image, you also rotate the origin of the image.
-class RotatedImage(Image):
-    def wrap(self,availWidth,availHeight):
-         h, w = Image.wrap(self,availHeight,availWidth)
-         return w, h
-    def draw(self):
-        self.canv.rotate(90)
-        self.translate(width/5 *cm, height/5*cm)
-        Image.draw(self )
+# class RotatedImage(Image):
+#     def wrap(self,availWidth,availHeight):
+#          h, w = Image.wrap(self,availHeight,availWidth)
+#          return w, h
+#     def draw(self):
+#         self.canv.rotate(90)
+#         self.translate(width/5 *cm, height/5*cm)
+#         Image.draw(self )
 
 
 def pass_fail(xs, ys, t, e, p):
@@ -70,19 +75,23 @@ def make_table(df):
 
     data = []
     remarks = {}
-    header = ['Positions', 'Absolute shifts within 2 mm', 'Relative shifts with 1 mm']
+    # header = ['Positions', 'Absolute shifts within 2 mm', 'Relative shifts within 1 mm']
+    header = ['Positions', 'Absolute shifts within 2 mm', 'Relative shifts within 1 mm', 'mFWHM']
     data.append(header)
-
 
     rel = []
     abs = []
 
     mspot = [] # find the missing spot location and its energy
+
+    mfwhm = [] # record any OFT FWHM per spot position per energy
     for p in pos:
         cdf = ndf.loc[p]
 
         abs_fe = []
         rel_fe = []
+
+        mfwhm_fe = [] # record mfwhm fe
 
         en_pos = list(pd.unique(cdf['energy']))
 
@@ -137,22 +146,35 @@ def make_table(df):
                     str4 = '%s: %s' % (str(rel_res[2][-2]), str(round(ysr, 3)))
                 rel_fe.append([e, str4])
 
+            # ## calculate the average FWHM from all four profiles
+            mf = cdf.loc[cdf['energy'] == e, ['hor_fwhm', 'vert_fwhm', 'tlbr_fwhm', 'bltr_fwhm']].mean(axis =1).iloc[0]
+            mf = round(mf, 3)
+            efwhm = round(exp_fwhm[e],3)
+
+            if mf > 1.1*efwhm or mf < 0.9*efwhm:
+                mfwhm_fe= [p, e, efwhm, mf]
+                mfwhm.append(mfwhm_fe) # use mfwhm to covert to a table in the report
 
         # define whether the measurement pass or fail the absolute/ relative test.
         if not abs_fe:
-            re_abs = 'All Passed'
+            re_abs = 'Passed'
         else:
             re_abs = 'Failed'
             abs.append(abs_fe)
 
         if not rel_fe:
-            re_rel = 'All Passed'
+            re_rel = 'Passed'
         else:
             re_rel = 'Failed'
             rel.append(rel_fe)
 
+        if not mfwhm_fe:
+            re_mfwhm = 'Passed'
+        else:
+            re_mfwhm = 'Failed'
 
-        line = [p,  re_abs,  re_rel]
+
+        line = [p,  re_abs,  re_rel, re_mfwhm]
         data.append(line)
 
         # find the x,y-shifts if they exceed the limit.
@@ -194,7 +216,7 @@ def make_table(df):
                     rel_tab.append(line)
                     line = []
 
-    return data, abs_tab, rel_tab, mspot
+    return data, abs_tab, rel_tab, mspot, mfwhm
 
 def make_shift_table(tab_list, pos):
     ''' tab_list is a nested list with all missing spots stored in a list [spot position, [list of energies ]]
@@ -238,7 +260,7 @@ def spot_report(df, p1, p2, fpath, gr_path, prof_path):
     # spot position
     pos = pd.unique(df['spot'])
 
-    data, abs_tab, rel_tab, mspot = make_table(df)
+    data, abs_tab, rel_tab, mspot, mfwhm = make_table(df)
     # pos = list(remarks.keys())
 
     # document
@@ -313,7 +335,7 @@ def spot_report(df, p1, p2, fpath, gr_path, prof_path):
         story.append(Paragraph('The spot positions and energies that fail the absolute limit:' , sp))
 
 
-        at_h = ['Spot position', 'Energy (MeV)', 'Absolute shits (mm)']
+        at_h = ['Spot position', 'Energy (MeV)', 'Absolute shifts (mm)']
         abs_tab.insert(0, at_h)
 
         at = make_shift_table(abs_tab, pos)
@@ -325,7 +347,7 @@ def spot_report(df, p1, p2, fpath, gr_path, prof_path):
     if rel_tab:
         story.append(Paragraph('The spot positions and energies that fail the relative limit:' , sp))
 
-        rt_h = ['Spot position', 'Energy (MeV)', 'Relative shits (mm)']
+        rt_h = ['Spot position', 'Energy (MeV)', 'Relative shifts (mm)']
         rel_tab.insert(0, rt_h)
 
         rt = make_shift_table(rel_tab, pos)
@@ -335,7 +357,7 @@ def spot_report(df, p1, p2, fpath, gr_path, prof_path):
 
     # missing spot table
     if mspot:
-        story.append(Paragraph('The script detects missing spot as below:' , sp))
+        story.append(Paragraph('The script detects missing spot(s) as below:' , sp))
 
         ms_h = ['Spot position', 'Energy (MeV)']
         mspot.insert(0, ms_h)
@@ -345,13 +367,22 @@ def spot_report(df, p1, p2, fpath, gr_path, prof_path):
         story.append(ms)
         story.append(Spacer(1, 20))
 
+    # mFWHM fails tolerance
+    if mfwhm:
+        story.append(Paragraph('The spot positions and energies that fail the FWHM tolerance:' , sp))
 
+        mf_h = ['Spot position', 'Energy (MeV)', 'Expected FWHM (mm)', 'Measured FWHM (mm)']
+        mfwhm.insert(0, mf_h)
+
+        mft = make_shift_table(mfwhm, pos)
+        story.append(mft)
+        story.append(Spacer(1, 20))
 
     # ## put the images in the report
-    images = [os.path.join(fpath, 'spot_grid (tolerance = 2 mm).png'), \
-              os.path.join(fpath, 'x-y-shifts_tol_2mm.png'), \
-              os.path.join(fpath, 'spot_grid (tolerance = 1 mm).png'), \
-              os.path.join(fpath, 'x-y-shifts_tol_1mm.png')
+    images = [os.path.join(fpath, 'Absolute spot positions (2 mm tolerance).png'), \
+              os.path.join(fpath, 'Absolute shifts (2 mm tolerance).png'), \
+              os.path.join(fpath, 'Relative spot positions (1 mm tolerance).png'), \
+              os.path.join(fpath, 'Relative shifts (1 mm tolerance).png')
                ]
               # os.path.join(fpath, 'fwhm_distribution.png'), \
               # os.path.join(fpath, 'gr_distribution.png')]
@@ -369,7 +400,7 @@ def spot_report(df, p1, p2, fpath, gr_path, prof_path):
 
     # mean fwhm plot
     story.append(PageBreak())
-    story.append(Paragraph('The averaged fwhm is calculated from all four profiles per spot position per energy.' , sp))
+    story.append(Paragraph('The averaged FWHM (i.e. spot size) is calculated from all four profiles per spot position per energy.' , sp))
     story.append(Image(image_mfwhm, width = 5*inch,  height = 4*inch,   hAlign = 'CENTER'))
 
 

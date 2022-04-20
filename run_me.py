@@ -2,6 +2,7 @@ import pandas as pd
 import os
 import numpy as np
 import easygui as eg
+import datetime
 
 
 import matplotlib.pyplot as plt
@@ -185,7 +186,7 @@ def spot_data(gui_values, spotpatterns):
     return all_data, device
 
 def main():
-    window = make_window(theme) #comment off to test
+    window = make_window(theme)
 
     while True:
         event, values = window.read() #comment off to test
@@ -193,14 +194,16 @@ def main():
 # -----------------------------------------------------------------------------------
 # # ------------------------------------ debug---------------------------------------
 # -----------------------------------------------------------------------------------
-        # event = 'Submit'
+        event = 'Submit'
 
         # values = {'-person1-': 'KC', '-person2-': 'TNC', '-gantry-': '3', '-gantry_angle-': '0', '-pro_en_1-': '70', '-bmp_loc_1-': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/my_spot_analysis/dummyData/G3_XRV4000_2022_03_03/run01_zero1/2022_0303_0001_70/00000001.bmp', 'Browse': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/my_spot_analysis/dummyData/G3_XRV4000_2022_03_03/run01_zero1/2022_0303_0001_70/00000001.bmp', '-pro_en_2-': '100', '-bmp_loc_2-': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/my_spot_analysis/dummyData/G3_XRV4000_2022_03_03/run01_zero1/2022_0303_0002_100/00000001.bmp', 'Browse0': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/my_spot_analysis/dummyData/G3_XRV4000_2022_03_03/run01_zero1/2022_0303_0002_100/00000001.bmp', '-pro_en_3-': '150', '-bmp_loc_3-': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/my_spot_analysis/dummyData/G3_XRV4000_2022_03_03/run01_zero1/2022_0303_0003_150/00000001.bmp', 'Browse1': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/my_spot_analysis/dummyData/G3_XRV4000_2022_03_03/run01_zero1/2022_0303_0003_150/00000001.bmp', '-pro_en_4-': '200', '-bmp_loc_4-': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/my_spot_analysis/dummyData/G3_XRV4000_2022_03_03/run01_zero1/2022_0303_0004_200/00000001.bmp', 'Browse2': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/my_spot_analysis/dummyData/G3_XRV4000_2022_03_03/run01_zero1/2022_0303_0004_200/00000001.bmp', '-pro_en_5-': '240', '-bmp_loc_5-': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/my_spot_analysis/dummyData/G3_XRV4000_2022_03_03/run01_zero1/2022_0303_0005_240/00000001.bmp', 'Browse3': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/my_spot_analysis/dummyData/G3_XRV4000_2022_03_03/run01_zero1/2022_0303_0005_240/00000001.bmp', '-comment-': ''}
 
          # ## C:\Users\KAWCHUNG\OneDrive - NHS\python_code\dummyData\2022_01_04_xrv3000_G1_VR
         # values = {'-person1-': 'VR', '-person2-': '', '-gantry-': '1', '-gantry_angle-': '0', '-pro_en_1-': '70', '-bmp_loc_1-': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/dummyData/2022_01_04_xrv3000_G1_VR/0_240_2022_0104_0011/00000001.bmp', 'Browse': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/dummyData/2022_01_04_xrv3000_G1_VR/0_240_2022_0104_0011/00000001.bmp', '-pro_en_2-': '100', '-bmp_loc_2-': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/dummyData/2022_01_04_xrv3000_G1_VR/0_200_2022_0104_0012/00000001.bmp', 'Browse0': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/dummyData/2022_01_04_xrv3000_G1_VR/0_200_2022_0104_0012/00000001.bmp', '-pro_en_3-': '150', '-bmp_loc_3-': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/dummyData/2022_01_04_xrv3000_G1_VR/0_150_2022_0104_0013/00000001.bmp', 'Browse1': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/dummyData/2022_01_04_xrv3000_G1_VR/0_150_2022_0104_0013/00000001.bmp', '-pro_en_4-': '200', '-bmp_loc_4-': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/dummyData/2022_01_04_xrv3000_G1_VR/0_100_2022_0104_0014/00000001.bmp', 'Browse2': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/dummyData/2022_01_04_xrv3000_G1_VR/0_100_2022_0104_0014/00000001.bmp', '-pro_en_5-': '240', '-bmp_loc_5-': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/dummyData/2022_01_04_xrv3000_G1_VR/0_70_2022_0104_0015/00000001.bmp', 'Browse3': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/dummyData/2022_01_04_xrv3000_G1_VR/0_70_2022_0104_0015/00000001.bmp', '-comment-': ''}
 
-        print(f'values: {values}')
+        # ## O:\protons\Dosimetry_and_QA\Routine QA\Spot Grids\4000\Gantry 2\2022-04-12\2022_0412_0004
+        # values = {'-person1-': 'AM', '-person2-': 'CG', '-gantry-': '1', '-gantry_angle-': '0', '-pro_en_1-': '70', '-bmp_loc_1-': 'O:/protons/Dosimetry_and_QA/Routine QA/Spot Grids/4000/Gantry 2/2022-04-12/2022_0412_0004/00000001.bmp', 'Browse': 'O:/protons/Dosimetry_and_QA/Routine QA/Spot Grids/4000/Gantry 2/2022-04-12/2022_0412_0004/00000001.bmp', '-pro_en_2-': '100', '-bmp_loc_2-': 'O:/protons/Dosimetry_and_QA/Routine QA/Spot Grids/4000/Gantry 2/2022-04-12/2022_0412_0005/00000001.bmp', 'Browse0': 'O:/protons/Dosimetry_and_QA/Routine QA/Spot Grids/4000/Gantry 2/2022-04-12/2022_0412_0005/00000001.bmp', '-pro_en_3-': '150', '-bmp_loc_3-': 'O:/protons/Dosimetry_and_QA/Routine QA/Spot Grids/4000/Gantry 2/2022-04-12/2022_0412_0006/00000001.bmp', 'Browse1': 'O:/protons/Dosimetry_and_QA/Routine QA/Spot Grids/4000/Gantry 2/2022-04-12/2022_0412_0006/00000001.bmp', '-pro_en_4-': '200', '-bmp_loc_4-': 'O:/protons/Dosimetry_and_QA/Routine QA/Spot Grids/4000/Gantry 2/2022-04-12/2022_0412_0007/00000001.bmp', 'Browse2': 'O:/protons/Dosimetry_and_QA/Routine QA/Spot Grids/4000/Gantry 2/2022-04-12/2022_0412_0007/00000001.bmp', '-pro_en_5-': '240', '-bmp_loc_5-': 'O:/protons/Dosimetry_and_QA/Routine QA/Spot Grids/4000/Gantry 2/2022-04-12/2022_0412_0008/00000001.bmp', 'Browse3': 'O:/protons/Dosimetry_and_QA/Routine QA/Spot Grids/4000/Gantry 2/2022-04-12/2022_0412_0008/00000001.bmp', '-comment-': ''}
+        # print(f'values: {values}')
 
 # -----------------------------------------------------------------------------------
 # # ------------------------------------ debug---------------------------------------
@@ -211,7 +214,51 @@ def main():
 
         # ## change directory and save data
         path = values['-bmp_loc_1-'].split(os.sep)
-        result_folder = 'result'
+
+        # ## reject duplicated operators
+        if values['-person1-'] == values['-person2-']:
+            sg.popup('ERROR MESSAGE!','same operator 1 and operator 2! That is NOT okay. Analysis terminated.')
+            break
+
+        # ## start analysis when gantry, gantry angle and operator(s) are correctly filled.
+        spotpatterns = {}
+        if event == 'Submit' and values['-gantry-'] != '' and values['-gantry_angle-'] != '' and values['-person1-'] != '' :
+            en = []
+            bmp_dir = []
+            rep_dir = []
+            for i in range(1,6):
+                str1 = '-pro_en_%s-' % str(i)
+                str2 = '-bmp_loc_%s-' % str(i)
+                if values[str1] not in en:
+                    en.append(values[str1])
+                else:
+                    sg.popup('ERROR MESSAGE!','You have entred %s MeV twice! Please have a look at the Proton energy column! Analysis terminated.' % str(values[str1]))
+                    break
+
+                if values[str2] not in bmp_dir:
+                    bmp_dir.append(values[str2])
+                else:
+                    sg.popup('ERROR MESSAGE!','Double check your bmp location column! Duplicated entry detected. Analysis terminated.' )
+                    rep_dir.append(i)
+                    break # break the loop when the same bmp location is entred, at least, twice.
+
+                spotpatterns.update({values[str1]: spm.SpotPattern(values[str2])})
+        else:
+            sg.popup('ERROR MESSAGE!','You hit SUBMIT but either your Gantry, Gantry angle or Operator 1 is empty. Analysis terminated.' )
+            break
+
+        # ##  break while loop if spotpatterns is not empty
+        if rep_dir:
+            break
+
+        all_data, device= spot_data(values, spotpatterns)
+
+        # ## get measurement date
+        # adate = db.get_mea_time(spotpatterns)
+        # date = adate.strftime('%Y-%m-%d')
+        # # result_folder = 'results_' + date + '_gantry' + str(values['-gantry-'])
+        result_folder = 'results'
+
 
         path_to_bmp, bmp = os.path.split(values['-bmp_loc_1-'])
         result_dir = os.path.dirname(path_to_bmp)
@@ -227,46 +274,6 @@ def main():
             os.chdir(result_dir)
             os.mkdir(result_folder)
             os.chdir(result_folder)
-
-        # ## reject duplicated operators
-        if values['-person1-'] == values['-person2-']:
-            print(f' >>> same operator 1 and operator 2! That is NOT okay. Analysis terminated.')
-            break
-
-        # ## start analysis when gantry, gantry angle and operator(s) are correctly filled.
-        spotpatterns = {}
-        if event == 'Submit' and values['-gantry-'] != '' and values['-gantry_angle-'] != '' and values['-person1-'] != '' :
-            en = []
-            bmp_dir = []
-            rep_dir = []
-            for i in range(1,6):
-                str1 = '-pro_en_%s-' % str(i)
-                str2 = '-bmp_loc_%s-' % str(i)
-                if values[str1] not in en:
-                    en.append(values[str1])
-                else:
-                    sg.popup('You have entred %s MeV twice! Please have a look at the Proton energy column! Analysis terminated.' % str(values[str1]))
-                    break
-
-                if values[str2] not in bmp_dir:
-                    bmp_dir.append(values[str2])
-                else:
-                    sg.popup('Double check your bmp location column! Duplicated entry detected. Analysis terminated.' )
-                    rep_dir.append(i)
-                    break # break the loop when the same bmp location is entred, at least, twice.
-
-                spotpatterns.update({values[str1]: spm.SpotPattern(values[str2])})
-        else:
-            sg.popup('ERROR MESSAGE!','You hit SUBMIT but either your Gantry, Gantry angle and Operator 1 is empty. Analysis terminated.' )
-            break
-
-        # ##  break while loop if spotpatterns is empty
-        if rep_dir:
-            break
-
-
-        all_data, device= spot_data(values, spotpatterns)
-
 
 
         # ## start analysis
