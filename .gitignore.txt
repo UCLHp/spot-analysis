@@ -11,3 +11,5 @@ sample_gaussian.xlsx
 
 dummyData/
 __pycache__/
+
+exe/

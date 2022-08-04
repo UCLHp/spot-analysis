@@ -52,13 +52,13 @@ def pass_fail(xs, ys, t, e, p):
         if ys < t and ys > -t:
             str = [p, e, 'All Passed']
         else:
-            str = [p, e, 'Failed (y)']
+            str = [p, e, 'OOT (y)']
 
     else:
         if ys < t and ys > -t:
-            str = [p, e, 'Failed (x)']
+            str = [p, e, 'OOT (x)']
         else:
-            str = [p, e, 'Both Failed']
+            str = [p, e, 'Both OOT']
 
     return str
 
@@ -92,25 +92,37 @@ def make_table(df):
         rel_fe = []
 
         mfwhm_fe = [] # record mfwhm fe
+        no_dim = cdf.ndim
 
-        en_pos = list(pd.unique(cdf['energy']))
+        # en_pos = cdf['energy'].tolist()
+        en_pos = []
+        if no_dim == 2: # has more than two energies detected at the same position
+            en_pos = cdf['energy'].tolist()
+        if no_dim == 1: # has only one energy detected at the same position
+            en_pos.append(cdf['energy'])
+            cdf = cdf.to_frame().T
 
         # missing energy per spot location if any
         men = []
-        if en_pos == en:
-            pass
-        else:
-            # find the missing energy in that spot position
-            for e in en:
-                if e not in en_pos:
-                    men.append(e)
+        for e in en:
+            if e not in en_pos:
+                men.append(e)
 
+        # if en_pos == en:
+        #     pass
+        # else:
+        #     # find the missing energy in that spot position
+        #     for e in en:
+        #         if e not in en_pos:
+        #             men.append(e)
 
         if men: # if men is not an empty list
-            mspot.append([p, str(men[0])])
+            mspot.append([p, str(men)])
+
 
 
         for e in en_pos:
+            # if no_dim ==2:
             #absolute shifts
             xs = cdf.loc[cdf['energy'] == e, 'x-shift-abs'].iloc[0]
             ys = cdf.loc[cdf['energy'] == e, 'y-shift-abs'].iloc[0]
@@ -123,11 +135,11 @@ def make_table(df):
             rel_res = pass_fail(xsr, ysr, t_rel, e, p)
 
             # find the fail (x,y)
-            if 'Both Failed' in abs_res[2]:
+            if 'Both OOT' in abs_res[2]:
                 str1 = 'x: %s, y: %s ' % (str(round(xs, 3)), str(round(ys, 3)))
                 abs_fe.append([e, str1])
 
-            elif 'Failed' in abs_res[2]:
+            elif 'OOT' in abs_res[2]:
                 if abs_res[2][-2] == 'x':
                     str2 = '%s: %s' % (str(abs_res[2][-2]), str(round(xs, 3)))
                 elif abs_res[2][-2] == 'y':
@@ -135,11 +147,11 @@ def make_table(df):
 
                 abs_fe.append([e, str2])
 
-            if 'Both Failed' in rel_res[2]:
+            if 'Both OOT' in rel_res[2]:
                 str3 = 'x: %s, y: %s' % (str(round(xsr, 3)), str(round(ysr, 3)))
                 rel_fe.append([e, str3])
 
-            elif 'Failed' in rel_res[2]:
+            elif 'OOT' in rel_res[2]:
                 if rel_res[2][-2] == 'x':
                     str4 = '%s: %s' % (str(rel_res[2][-2]), str(round(xsr, 3)))
                 elif rel_res[2][-2] == 'y':
@@ -152,26 +164,27 @@ def make_table(df):
             efwhm = round(exp_fwhm[e],3)
 
             if mf > 1.1*efwhm or mf < 0.9*efwhm:
-                mfwhm_fe= [p, e, efwhm, mf]
+                r = '%s < e < %s' % (str(round(0.9*efwhm, 3)), str(round(1.1*efwhm,3)))
+                mfwhm_fe= [p, e, r, mf]
                 mfwhm.append(mfwhm_fe) # use mfwhm to covert to a table in the report
 
         # define whether the measurement pass or fail the absolute/ relative test.
         if not abs_fe:
             re_abs = 'Passed'
         else:
-            re_abs = 'Failed'
+            re_abs = 'OOT'
             abs.append(abs_fe)
 
         if not rel_fe:
             re_rel = 'Passed'
         else:
-            re_rel = 'Failed'
+            re_rel = 'OOT'
             rel.append(rel_fe)
 
         if not mfwhm_fe:
             re_mfwhm = 'Passed'
         else:
-            re_mfwhm = 'Failed'
+            re_mfwhm = 'OOT'
 
 
         line = [p,  re_abs,  re_rel, re_mfwhm]
@@ -237,11 +250,12 @@ def make_shift_table(tab_list, pos):
 
     return obj
 
-def spot_report(df, p1, p2, fpath, gr_path, prof_path):
+def spot_report(df, p1, p2, fpath, gr_path, prof_path, comments):
     # exam date
     date = pd.unique(df['date'])
     cdate = pd.to_datetime(date).astype(str).to_list()
     cdate = 'Date : ' + cdate[0]
+    d = cdate.split()[2]
 
     # operators
     operators = 'Investigator(s) : %s %s' % (p1, p2 )
@@ -249,10 +263,12 @@ def spot_report(df, p1, p2, fpath, gr_path, prof_path):
     # gantry angle
     gantry_angle = pd.unique(df['gantry_angle'])
     gantry_angle = 'Gantry angle = %s degree' % str(gantry_angle[0])
+    ga = gantry_angle.split()[-2]
 
     # gantry
     gantry = pd.unique(df['gantry'])[0]
     gantry = 'Location : %s' % gantry
+    g = gantry.split()[-1]
 
     # device
     device = pd.unique(df['device'])
@@ -263,13 +279,12 @@ def spot_report(df, p1, p2, fpath, gr_path, prof_path):
     data, abs_tab, rel_tab, mspot, mfwhm = make_table(df)
     # pos = list(remarks.keys())
 
+    report_name = 'SG_G%s_GA%s_%s.pdf' % (g, ga, d)
+
     # document
-    doc = SimpleDocTemplate("report.pdf",pagesize=letter,
+    doc = SimpleDocTemplate(report_name,pagesize=letter,
                             rightMargin=72,leftMargin=72,
                             topMargin=72,bottomMargin=18)
-
-
-
 
     hp = ParagraphStyle('Normal')
     hp.textcolor = 'black'
@@ -319,20 +334,30 @@ def spot_report(df, p1, p2, fpath, gr_path, prof_path):
 
     for r in range(1, len(data)):
         for c in range(0, len(data[0])):
-            if data[r][c] == 'Failed':
+            if data[r][c] == 'OOT':
                 t.setStyle(TableStyle([('BACKGROUND', (c, r), (c, r), colors.lightcoral)]))
 
     story.append(t)
     story.append(Spacer(1, 20))
 
-    story.append(Paragraph('** Result is defined as failed if one (or more than one) energy at the spot position exceeds the limit.' , sp))
+    story.append(Paragraph('** Result is defined as Out Of Tolerance (OOT) if one (or more than one) energy at the spot position exceeds the tolerance.' , sp))
 
-    story.append(Spacer(1, 50))
+    story.append(Spacer(1, 20))
+
+    # comments
+    story.append(Paragraph('Investigator comment(s):' , sp))
+    if comments:
+        story.append(Paragraph(str(comments), sp))
+    else:
+        story.append(Paragraph('NA' , sp))
+
+    story.append(Spacer(1, 20))
+
 
     # absolute shift table
     if abs_tab:
         # print(f'abs_tab: {abs_tab}')
-        story.append(Paragraph('The spot positions and energies that fail the absolute limit:' , sp))
+        story.append(Paragraph('The spot positions and energies that fail the absolute tolerance:' , sp))
 
 
         at_h = ['Spot position', 'Energy (MeV)', 'Absolute shifts (mm)']
@@ -345,7 +370,7 @@ def spot_report(df, p1, p2, fpath, gr_path, prof_path):
 
     # relative shift table
     if rel_tab:
-        story.append(Paragraph('The spot positions and energies that fail the relative limit:' , sp))
+        story.append(Paragraph('The spot positions and energies that fail the relative tolerance:' , sp))
 
         rt_h = ['Spot position', 'Energy (MeV)', 'Relative shifts (mm)']
         rel_tab.insert(0, rt_h)

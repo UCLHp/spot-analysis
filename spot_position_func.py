@@ -232,6 +232,29 @@ def find_indices(percent, arr_mm, nor_amp,  raw_amp):
 
     return ind_l, ind_r
 
+def points(percent, i_centre, ind, arr_mm, nor_amp,  raw_amp, nor_p):
+    if arr_mm[ind] < arr_mm[i_centre] : # left gradient
+        if nor_p[ind]>percent and ind > 0:
+            nor = [nor_p[ind-1], nor_p[ind]]
+            arr = [arr_mm[ind-1], arr_mm[ind]]
+            raw = [raw_amp[ind-1], raw_amp[ind]]
+        else:
+            nor = [nor_p[ind], nor_p[ind+1]]
+            arr = [arr_mm[ind], arr_mm[ind+1]]
+            raw = [raw_amp[ind], raw_amp[ind+1]]
+
+    else: # right gradient
+        if nor_p[ind]>percent and ind < len(nor_p) -1 :
+                nor = [nor_p[ind], nor_p[ind+1]]
+                arr = [arr_mm[ind], arr_mm[ind+1]]
+                raw = [raw_amp[ind], raw_amp[ind+1]]
+
+        else:
+            nor = [nor_p[ind-1], nor_p[ind]]
+            arr = [arr_mm[ind-1], arr_mm[ind]]
+            raw = [raw_amp[ind-1], raw_amp[ind]]
+    return nor, arr, raw
+
 def interpolate(p, x_arr, y_arr):
     ''' To interpolate p from two points
         p = percent.
@@ -252,29 +275,41 @@ def interpol_point(percent, ind, arr_mm, nor_amp, raw_amp):
 
     # nor_p = [i/max(raw_amp.tolist()) for i in raw_amp.tolist()]
     nor_p = [i/max(nor_amp.tolist()) for i in nor_amp.tolist()]
+    diff = [nor_p[i]- nor_p[i-1] for i in range(1, len(nor_p))]
     i_centre = nor_p.index(max(nor_p))
 
-    if arr_mm[ind] < arr_mm[i_centre] : # left gradient
-        if nor_p[ind]>percent:
-            arr = [arr_mm[ind-1], arr_mm[ind]]
-            nor = [nor_p[ind-1], nor_p[ind]]
-            raw = [raw_amp[ind-1], raw_amp[ind]]
-        else:
-            arr = [arr_mm[ind], arr_mm[ind+1]]
-            nor = [nor_p[ind], nor_p[ind+1]]
-            raw = [raw_amp[ind], raw_amp[ind+1]]
-    else: # right gradient
-        if nor_p[ind]>percent:
-            arr = [arr_mm[ind], arr_mm[ind+1]]
-            nor = [nor_p[ind], nor_p[ind+1]]
-            raw = [raw_amp[ind], raw_amp[ind+1]]
-        else:
-            arr = [arr_mm[ind-1], arr_mm[ind]]
-            nor = [nor_p[ind-1], nor_p[ind]]
-            raw = [raw_amp[ind-1], raw_amp[ind]]
+    nor, arr, raw = points(percent, i_centre, ind, arr_mm, nor_amp, raw_amp, nor_p)
 
-    # mm = np.interp(percent, nor, arr)
-    # amp = np.interp(percent, nor, raw)
+    ## if you suspect your beam passing through the couch before reaching the detector, uncomment the following part of code.
+    ## --------------------------------------------------------------------------------------------------------------------
+    # if nor[0] == nor[1]:
+        # print(f'percent: {percent} || arr: {arr} || nor: {nor} || raw: {raw}')
+        # # print(f'\n\n nor_p: {nor_p} || i_centre: {i_centre} \n')
+        # print(f'nor_p: {nor_p, len(nor_p)} \n\n')
+        # print(f' diff : {diff} \n\n')
+
+    #
+    # ##re-define ind to catch the point closest to 0.8, 0.2, 0.5
+    if nor[0] == nor[1]:
+        dt = list(range(1, 5))
+
+        for d in dt:
+
+            if arr_mm[ind] < arr_mm[i_centre]: # left side
+                if diff[ind + d] != 0:
+                    ind = ind + d + 1
+                    break
+
+            elif arr_mm[ind] > arr_mm[i_centre]: # right side
+                if diff[ind - d ] != 0:
+                        ind = ind - d
+                        break
+
+
+        nor, arr, raw = points(percent, i_centre, ind, arr_mm, nor_amp,  raw_amp, nor_p)
+        # print(f'post-tunning: >>> percent: {percent} || arr: {arr} || nor: {nor} || raw: {raw}')
+    ## --------------------------------------------------------------------------------------------------------------------
+
 
     mm = interpolate(percent, nor, arr)
     amp = interpolate(percent, nor, raw)
@@ -309,12 +344,10 @@ def fetch_parameters(arr_mm, nor_amp, raw_amp):
     # if deb_r < -1.1 or deb_r > -0.9:
     #
     #     print(f'>>> deb_r :{deb_r}')
-    #     print(f'ind_l: {ind_l} , ind_r: {ind_r}')
+        # print(f'ind_l: {ind_l} , ind_r: {ind_r}')
     #     print(f'outcome: {outcome}')
     #
     #     print(f'nor_amp: {nor_amp}')
-
-
 
     # -----------------------------------------------------------------------------------
 

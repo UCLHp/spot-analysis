@@ -465,8 +465,6 @@ def plot_fwhm(df):
     pos = list(pd.unique(ndf['spot']))
     ndf = ndf.set_index('spot')
 
-
-
     sns_color = sns.color_palette('muted', len(pos))
     color_pos = {p:sns_color[i] for i, p in enumerate(pos)}
 
@@ -486,10 +484,9 @@ def plot_fwhm(df):
 
     for p in pos:
         pdf =  ndf.loc[p]
-        x = list(pdf['energy'])
-        y = list(pdf['mfwhm'])
+        x = pdf['energy'].tolist()
+        y = pdf['mfwhm'].tolist()
         ax.plot(x , y , markersize = 5, color = color_pos[p], marker = 'o',  label = p, linestyle= '', markeredgecolor = '#F0FFFF')
-
 
     ax.plot( en, exp_y, 'k+', markersize = 10, label = 'expected FWHM')
     ax.set_xlabel('Proton energy (MeV)')

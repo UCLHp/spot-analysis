@@ -17,11 +17,8 @@ import spot_position_func as spf
 import constants as cs
 
 
-pred_xrv4000 = cs.pred_xrv4000
-pred_xrv3000 = cs.pred_xrv3000
-
-plan_loc_l = cs.plan_loc_l
-plan_loc_s = cs.plan_loc_s
+# pred_xrv4000 = cs.pred_xrv4000
+# pred_xrv3000 = cs.pred_xrv3000
 
 class ActiveScript:
     def __init__(self, image_dir):
@@ -69,7 +66,7 @@ class Output:
         for line in file:
             full_data.append([x.lstrip().rstrip() for x in line.split(',')])
             if line.startswith('Beamspots found'):
-                no_of_spots = int(line[18:])
+                no_of_spots = int(line.split(',')[-1])
 
         self.full_data = full_data
         date = full_data[0][3]
@@ -77,10 +74,10 @@ class Output:
         self.center = [float(full_data[0][5]),float(full_data[0][6])]
         if self.center[0] > 700 or self.center[1] > 700:
             self.device = "4000"
-            loc_name = list(pred_xrv4000.keys())
+            # loc_name = list(pred_xrv4000.keys())
         else:
             self.device = "3000"
-            loc_name = list(pred_xrv3000.keys())
+            # loc_name = list(pred_xrv3000.keys())
         self.no_of_spots = no_of_spots
         self.spots_xy = {}
         self.spots_width = {}
@@ -95,114 +92,6 @@ class Output:
             self.spots_height[i] = full_data[row][23]
             self.spots_diameter[i] = full_data[row][25] # averaged diameter for every 5 degree
             self.spots_quality[i] = full_data[row][27]
-
-        # self.rot_l, self.rot_s = self.flip_ls()
-        self.mloc, self.match = self.identify_spot() # corrlate the position name with the key in spots_xy
-
-        spot_info = {key:0 for key, val in self.mloc.items() if val[0] !=0}
-        # if self.device == "4000":
-        for key in spot_info.keys():
-            # update spots_xy, spots_width(was spots_height), spot_height(was spots_width), spot_diameter, spots_quality
-            spot_info[key] = copy.deepcopy(self.mloc[key])
-            spot_info[key].append(self.spots_height[self.match[key]])
-            spot_info[key].append(self.spots_width[self.match[key]])
-            spot_info[key].append(self.spots_diameter[self.match[key]])
-            spot_info[key].append(self.spots_quality[self.match[key]])
-
-        self.spots_info = spot_info
-
-    def identify_spot(self):
-        if self.device == "4000":
-            loc_name = list(pred_xrv4000.keys())
-            ploc = pred_xrv4000
-            flip_factor = -1 # flip the long axis coordinates while transfering to the image coordinates from Callum's code
-
-        elif self.device == "3000":
-            loc_name = list(pred_xrv3000.keys())
-            ploc = pred_xrv3000
-            flip_factor = 1
-
-
-        # create an empty dictionary with the position name as the key
-        mloc = {key:[0,0] for key in loc_name}
-
-        match = {key:0 for key in loc_name}
-        for key, item in self.spots_xy.items():
-            for pkey, pitem in ploc.items():
-                tol = 10
-                # negative sign was added in front of y-coordinate of the spot position because the logos output coordinates need to match with the image coordinates
-                if self.device == "4000":
-                    if float(item[1]) > float(pitem[0] -tol) and float(item[1]) < float(pitem[0] +tol): # find the spot with matching long axis coordinate
-                        if flip_factor*float(item[0]) > float(pitem[1] -tol) and flip_factor*float(item[0]) < float(pitem[1] +tol): # find the spot with matching y-coordinate
-                            mloc[pkey] =[float(item[1]), flip_factor*float(item[0])]
-                            match[pkey] = key
-                elif self.device == "3000":
-                    if float(item[0]) > float(pitem[0] -tol) and float(item[0]) < float(pitem[0] +tol): # find the spot with matching long axis coordinate
-                        if flip_factor*float(item[1]) > float(pitem[1] -tol) and flip_factor*float(item[1]) < float(pitem[1] +tol): # find the spot with matching y-coordinate
-                            mloc[pkey] =[float(item[0]), flip_factor*float(item[1])]
-                            match[pkey] = key
-
-        for key, item in mloc.items():
-            if item[0] == 0:
-                if item[1] == 0:
-                    print(f' >>>>> The script does not find any {key} spot! ')
-
-        return mloc, match
-
-    # def flip_ls(self):
-    #
-    #     dl = [np.float(self.spots_xy[i][0]) - np.float(self.spots_xy[i-1][0]) for i in np.arange(1, self.no_of_spots + 1) if i !=1]
-    #     ds = [np.float(self.spots_xy[i][1]) - np.float(self.spots_xy[i-1][1]) for i in np.arange(1, self.no_of_spots + 1) if i !=1]
-    #
-    #     if abs(dl[0]) > abs(ds[0]): #scan along the long axis
-    #         ls_s = [i for i in np.arange(0, len(ds)) if abs(ds[i]) > sum(ds)/len(ds)]
-    #         mr = int(ceil(self.no_of_spots/(ls_s[0]+1))) #3, xrv4000
-    #         mc = ls_s[0]+1 #5, xrv4000
-    #         arr_l = np.zeros((mr, mc))
-    #         arr_s = np.zeros((mr, mc))
-    #
-    #         # for ind, key in enumerate(self.spots_xy):
-    #         for ir in np.arange(0, mr):
-    #             for ic in np.arange(0, mc):
-    #                 if ir*mc+ic+1 < self.no_of_spots:
-    #                     arr_l[ir, ic] = self.spots_xy.get(ir*mc+ic+1)[0]
-    #                     arr_s[ir, ic] = self.spots_xy.get(ir*mc+ic+1)[1]
-    #                 else:
-    #                     arr_l[ir, ic] = 0
-    #                     arr_s[ir, ic] = 0
-    #         if self.device == "4000":
-    #             rot_l = np.fliplr(arr_l).transpose()
-    #             rot_s = np.fliplr(arr_s).transpose()
-    #         else:
-    #             rot_l = arr_l
-    #             rot_s = arr_s
-    #
-    #     elif  abs(dl[0]) < abs(ds[0]):
-    #         print(f'scanning along the 4000 short axis. Have never tested this part of the script!')
-    #         ls_l = [i for i in np.arange(0, len(dl)) if abs(ds[i]) > sum(dl)/len(dl)]
-    #         mr = int(ceil(self.no_of_spots/(ls_s[0]+1))) #3, xrv4000
-    #         mc = ls_s[0]+1 #5
-    #         arr_l = np.zeros((mr, mc))
-    #         arr_s = np.zeros((mr, mc))
-    #
-    #         for ir in np.arange(0, mr):
-    #             for ic in np.arange(0, mc):
-    #                 if ir*mc+ic+1 < self.no_of_spots:
-    #                     arr_l[ir, ic] = self.spots_xy.get(ir*mc+ic+1)[0]
-    #                     arr_s[ir, ic] = self.spots_xy.get(ir*mc+ic+1)[1]
-    #                 else:
-    #                     arr_l[ir, ic] = 0
-    #                     arr_s[ir, ic] = 0
-    #
-    #         if self.device == "4000":
-    #             rot_l = np.flipUP(arr_l).transpose()
-    #             rot_s = np.flipIP(arr_s).transpose()
-    #         else:
-    #             rot_l = arr_l
-    #             rot_s = arr_s
-    #
-    #     return rot_l, rot_s
-
 
 class Profile:
     # def __init__(self, profile):
@@ -240,8 +129,6 @@ class Spot:
         self.vertprof = Profile(vertprof)
         self.tl_br = Profile(tl_br)
         self.bl_tr = Profile(bl_tr)
-
-
 
         x = self.pixel_loc[0] - activescript.AppXCenter
         y = self.pixel_loc[1] - activescript.AppYCenter
@@ -281,6 +168,8 @@ class SpotPattern:
             input('Press any key to continue')
             raise SystemExit
 
+
+
         self.path = image_path
         self.activescriptpath = os.path.join(image_dir, 'activescript.txt')
         self.activescript = ActiveScript(self.activescriptpath)
@@ -292,60 +181,128 @@ class SpotPattern:
         if self.activescript.device == '4000':
             self.image = cv2.rotate(self.image, cv2.ROTATE_90_COUNTERCLOCKWISE)
 
-        self.pixel_loc, self.logos_pos = self.find_bmp_spot(image_path)
+        # self.rot_l, self.rot_s = self.flip_ls()
+        self.mloc, self.match = self.identify_spot() # corrlate the position name with the key in spots_xy
+
+        spot_info = {key:0 for key, val in self.mloc.items() if val[0] !=0}
+        # if self.device == "4000":
+        for key in spot_info.keys():
+            # update spots_xy, spots_width(was spots_height), spot_height(was spots_width), spot_diameter, spots_quality
+            spot_info[key] = copy.deepcopy(self.mloc[key])
+            spot_info[key].append(self.output.spots_height[self.match[key]])
+            spot_info[key].append(self.output.spots_width[self.match[key]])
+            spot_info[key].append(self.output.spots_diameter[self.match[key]])
+            spot_info[key].append(self.output.spots_quality[self.match[key]])
+
+        self.spots_info = spot_info
+
+        self.pixel_loc = self.find_bmp_spot(image_path)
         self.spot_arr = self.find_bmp_spot_arr()
 
         spt = {key: 0  for key in self.spot_arr.keys()}
         for s in self.spot_arr.keys():
+            # print(f'-----------------------')
+            # print(f'>>>spot location : {s}')
+            # print(f'-----------------------')
             spt[s] = Spot(self.spot_arr[s], self.pixel_loc[s], self.activescript)
 
         self.spot = spt
 
 
+
     def find_bmp_spot(self, image_path):
-        mloc = self.output.mloc
+        mloc = self.mloc
 
         if self.activescript.device == "4000":
             npixel_y = 1600
             npixel_x = 1200
-            resol_x = self.activescript.CameraVRatio
-            resol_y = self.activescript.CameraHRatio
+            resol_x = self.activescript.CameraHRatio
+            resol_y = self.activescript.CameraVRatio
+
 
         elif self.activescript.device == "3000":
             npixel_y = 1200
             npixel_x = 1200
-            resol_y = self.activescript.CameraVRatio
             resol_x = self.activescript.CameraHRatio
+            resol_y = self.activescript.CameraVRatio
 
         # ## convert the x-y axes from pixel to image coordinates
-        y_mm = [((i/resol_y) - (npixel_y/2)/resol_y) for i in range(1, npixel_y+1)]
-        x_mm = [((i/resol_x) - (npixel_x/2)/resol_x) for i in range(1, npixel_x+1)]
+        # ### logos mechanical centre in pixel
+        x_lmcp = self.activescript.AppXCenter
+        y_lmcp = self.activescript.AppYCenter
 
-        # ## find the pixel coordinate of each spot from the bmp image
-        ind_key = {key:[0, 0] for key in mloc.keys()}
-        for key in mloc:
-            if mloc[key][0] == mloc[key][1]:
-                ind_key[key][0] = 0
-                ind_key[key][1] = 0
-            subtract_x = [abs(mloc[key][0] - ix) for ix in x_mm]
-            subtract_y = [abs(mloc[key][1] - iy) for iy in y_mm]
-            ind_key[key][0] = subtract_x.index(min(subtract_x))
-            ind_key[key][1] = subtract_y.index(min(subtract_y))
+        x_mm = [((i/resol_x) - (x_lmcp/resol_x)) for i in range(1, npixel_x+1)]
+        y_mm = [((i/resol_y) - (y_lmcp/resol_y)) for i in range(1, npixel_y+1)]
 
-        # ## convert the spot coordinates from pixel to image coordinates
-        logos_pos = {key:[(arr[0]/resol_x) - (npixel_x/2)/(resol_x) , (arr[1]/resol_y) - (npixel_y/2)/(resol_y) ] for key, arr in ind_key.items()}
+        # # ## find the pixel coordinate of each spot from the bmp image
+        pixel_loc = {key:[round((arr[0]*resol_x) + x_lmcp) , round((arr[1]*resol_y) + y_lmcp) ] for key, arr in mloc.items()}
 
-        return ind_key, logos_pos
+        return pixel_loc
 
     def find_bmp_spot_arr(self):
         single_slice = self.image[:, :, 0]
         d = self.range
 
-        spot_arr = {key:[0] for key in self.output.mloc.keys()}
-        for key in self.output.mloc.keys():
+        spot_arr = {key:[0] for key in self.mloc.keys()}
+        for key in self.mloc.keys():
             spot_arr[key] = single_slice[self.pixel_loc[key][1]- d: self.pixel_loc[key][1]+d+1 , self.pixel_loc[key][0]-d:self.pixel_loc[key][0]+d+1 ]
 
         return spot_arr
+
+        # self.rot_l, self.rot_s = self.flip_ls()
+        self.mloc, self.match = self.identify_spot() # corrlate the position name with the key in spots_xy
+
+        spot_info = {key:0 for key, val in self.mloc.items() if val[0] !=0}
+        # if self.device == "4000":
+        for key in spot_info.keys():
+            # update spots_xy, spots_width(was spots_height), spot_height(was spots_width), spot_diameter, spots_quality
+            spot_info[key] = copy.deepcopy(self.mloc[key])
+            spot_info[key].append(self.spots_height[self.match[key]])
+            spot_info[key].append(self.spots_width[self.match[key]])
+            spot_info[key].append(self.spots_diameter[self.match[key]])
+            spot_info[key].append(self.spots_quality[self.match[key]])
+
+        self.spots_info = spot_info
+
+    def identify_spot(self):
+        pred_xrv4000 = cs.pred_xrv4000
+        pred_xrv3000 = cs.pred_xrv3000
+
+        if self.output.device == "4000":
+            loc_name = list(pred_xrv4000.keys())
+            ploc = pred_xrv4000
+            flip_factor = -1 # flip the long axis coordinates while transfering to the image coordinates from Callum's code
+
+        elif self.output.device == "3000":
+            loc_name = list(pred_xrv3000.keys())
+            ploc = pred_xrv3000
+            flip_factor = 1
+
+        # create an empty dictionary with the position name as the key
+        mloc = {key:[0,0] for key in loc_name}
+
+        match = {key:0 for key in loc_name}
+        for key, item in self.output.spots_xy.items():
+            for pkey, pitem in ploc.items():
+                tol = 10
+                # negative sign was added in front of y-coordinate of the spot position because the logos output coordinates need to match with the image coordinates
+                if self.output.device == "4000":
+                    if float(item[1]) > float(pitem[0] -tol) and float(item[1]) < float(pitem[0] +tol): # find the spot with matching long axis coordinate
+                        if flip_factor*float(item[0]) > float(pitem[1] -tol) and flip_factor*float(item[0]) < float(pitem[1] +tol): # find the spot with matching y-coordinate
+                            mloc[pkey] =[float(item[1]), flip_factor*float(item[0])]
+                            match[pkey] = key
+                elif self.output.device == "3000":
+                    if float(item[0]) > float(pitem[0] -tol) and float(item[0]) < float(pitem[0] +tol): # find the spot with matching long axis coordinate
+                        if flip_factor*float(item[1]) > float(pitem[1] -tol) and flip_factor*float(item[1]) < float(pitem[1] +tol): # find the spot with matching y-coordinate
+                            mloc[pkey] =[float(item[0]), flip_factor*float(item[1])]
+                            match[pkey] = key
+
+        for key, item in mloc.items():
+            if item[0] == 0:
+                if item[1] == 0:
+                    print(f' >>>>> The script does not find any {key} spot! ')
+
+        return mloc, match
 
 
     def __str__(self):

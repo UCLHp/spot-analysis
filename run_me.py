@@ -16,7 +16,7 @@ import constants as cs
 import report as rp
 
 
-operators = cs.operators
+
 gantries = cs.gantries
 DATABASE_DIR = cs.DATABASE_DIR
 PWD = cs.PWD
@@ -35,21 +35,31 @@ else:
     prof_path = []
     gr_path  = []
 
+
 def make_window(theme):
     sg.theme(theme)
+    pbt = db.fetch_db(DATABASE_DIR, 'Operators', 'Initials', PWD = PWD)
+
+    if pbt == False:
+        operators = cs.operators
+    else:
+        operators = pbt
+
+    print(f'operators: {operators}')
+
     # warning = [sg.Text('Operator 2 is required when Operator 1 cannot sign off the spot grid QA.')]
-    person_1 = [sg.Text('Operator 1: '), sg.Combo(values= operators, key = '-person1-')]
-    person_2 = [sg.Text('Operator 2: '), sg.Combo(values= operators, key = '-person2-')]
+    person_1 = [sg.Text('Operator 1: '), sg.Combo(values= operators, key = '-PERSON1-')]
+    person_2 = [sg.Text('Operator 2: '), sg.Combo(values= operators, key = '-PERSON2-')]
     # warning = [sg.Frame('Reminder: ', [[sg.Text('Operator 2 is required when Operator 1 cannot sign off the spot grid QA.')], person_1 + person_2])]
-    gantry = [sg.Text('Gantry: '), sg.Combo(values = gantries, key = '-gantry-')]
-    gantry_angle = [sg.Text('Gantry angle: '), sg.InputText(size = (5, 1), key = '-gantry_angle-')]
+    gantry = [sg.Text('Gantry: '), sg.Combo(values = gantries, key = '-GANTRY-')]
+    gantry_angle = [sg.Text('Gantry angle: '), sg.InputText(size = (5, 1), key = '-GANTRY_ANGLE-')]
     col_titles = [sg.Text('Proton energy (MeV)', size = (15, 1), justification = 'l'), sg.Text('Bmp picture locations', size = (20, 1), justification = 'l')]
-    ent1 = [sg.Text('(1)'), sg.InputText(size = (10, 1), key = '-pro_en_1-', default_text = '70'), sg.Text('@'), sg.InputText(key = '-bmp_loc_1-'), sg.FileBrowse()]
-    ent2 = [sg.Text('(2)'), sg.InputText(size = (10, 1), key = '-pro_en_2-', default_text = '100'), sg.Text('@'), sg.InputText(key = '-bmp_loc_2-'), sg.FileBrowse()]
-    ent3 = [sg.Text('(3)'), sg.InputText(size = (10, 1), key = '-pro_en_3-', default_text = '150'), sg.Text('@'), sg.InputText(key = '-bmp_loc_3-'), sg.FileBrowse()]
-    ent4 = [sg.Text('(4)'), sg.InputText(size = (10, 1), key = '-pro_en_4-', default_text = '200'), sg.Text('@'), sg.InputText(key = '-bmp_loc_4-'), sg.FileBrowse()]
-    ent5 = [sg.Text('(5)'), sg.InputText(size = (10, 1), key = '-pro_en_5-', default_text = '240'), sg.Text('@'), sg.InputText(key = '-bmp_loc_5-'), sg.FileBrowse()]
-    comment = [sg.Text('Comments: '), sg.InputText(size = (50, 1), key = '-comment-')]
+    ent1 = [sg.Text('(1)'), sg.InputText(size = (10, 1), key = '-PRO_EN_1-', default_text = '70'), sg.Text('@'), sg.InputText(key = '-BMP_LOC_1-'), sg.FileBrowse()]
+    ent2 = [sg.Text('(2)'), sg.InputText(size = (10, 1), key = '-PRO_EN_2-', default_text = '100'), sg.Text('@'), sg.InputText(key = '-BMP_LOC_2-'), sg.FileBrowse()]
+    ent3 = [sg.Text('(3)'), sg.InputText(size = (10, 1), key = '-PRO_EN_3-', default_text = '150'), sg.Text('@'), sg.InputText(key = '-BMP_LOC_3-'), sg.FileBrowse()]
+    ent4 = [sg.Text('(4)'), sg.InputText(size = (10, 1), key = '-PRO_EN_4-', default_text = '200'), sg.Text('@'), sg.InputText(key = '-BMP_LOC_4-'), sg.FileBrowse()]
+    ent5 = [sg.Text('(5)'), sg.InputText(size = (10, 1), key = '-PRO_EN_5-', default_text = '240'), sg.Text('@'), sg.InputText(key = '-BMP_LOC_5-'), sg.FileBrowse()]
+    comment = [sg.Text('Comments: '), sg.InputText(size = (50, 1), key = '-COMMENT-')]
     button_submit = [sg.Button('Submit')]
     button_exit = [sg.Button('Exit')]
 
@@ -65,7 +75,7 @@ def make_window(theme):
 def make_window_after_reviewing_data(theme):
     sg.theme(theme)
     text = [sg.Text('Please review your spot position data! If you have any comments, please write down below.')]
-    comment2 = [sg.Text('Comments: '), sg.InputText(size = (50, 1), key = '-comment2-')]
+    comment2 = [sg.Text('Comments: '), sg.InputText(size = (50, 1), key = '-COMMENT2-')]
 
     text1 = [sg.Text('Press SUBMIT to push the data to the proton database!')]
 
@@ -88,30 +98,35 @@ def session_result(gui_values, values2,  spotpatterns):
     # get the latest measurement date and time from five measurements
     adate = db.get_mea_time(spotpatterns)
     # adate = spotpatterns['240'].output.datetime
-    machine_name = 'Gantry ' + gui_values['-gantry-']
+    machine_name = 'Gantry ' + gui_values['-GANTRY-']
     # session = 1234
-    device = 'XRV-' +spotpatterns['240'].output.device
-    operator1 = gui_values['-person1-']
-    operator2 = gui_values['-person2-']
-    comment = gui_values['-comment-'] + ' ' + values2['-comment2-']
+    device = 'XRV-' + spotpatterns['240'].output.device
+    operator1 = gui_values['-PERSON1-']
+    operator2 = gui_values['-PERSON2-']
+    gantry_angle = gui_values['-GANTRY_ANGLE-']
+    comment = gui_values['-COMMENT-'] + ' ' + values2['-COMMENT2-']
 
-    result = [adate, machine_name, device, operator1, operator2, comment, None]
+    result = [adate, machine_name, device, gantry_angle, operator1, operator2, comment, None]
+    print(f'result: {result}')
+    # result = [adate, machine_name, device, operator1, operator2, comment, None]
+    # print(f'adate: {adate}  || machine_name: {machine_name} ||  device : {device} || operator1:{operator1}|| comment: {comment} ')
 
     # push the session result to the session table in the ASSESS Database
     push_result = db.push_session_data(DATABASE_DIR, result)
 
-    # print(f'adate: {adate}  || machine_name: {machine_name} || session: {session} || device : {device} || operator1:{operator1}')
+    print(f'push_result: {push_result}')
     return push_result
 
 def spot_data(gui_values, spotpatterns):
-    ''' gui_values: a dict containing the output of the PySimpleGUI
+    ''' To create a nested list, each list contains the physical parameters of a profile of a spot.
+        gui_values: a dict containing the output of the PySimpleGUI
         spotpatterns: a dict containing the SpotPattern object corresponding to the proton energy'''
 
     # get the latest measurement date and time from five measurements
     adate = db.get_mea_time(spotpatterns)
 
-    machine_name = 'Gantry ' + gui_values['-gantry-']
-    gantry_angle = gui_values['-gantry_angle-']
+    machine_name = 'Gantry ' + gui_values['-GANTRY-']
+    gantry_angle = gui_values['-GANTRY_ANGLE-']
 
     en =  sorted([int(key) for key in spotpatterns.keys()], reverse = True)
     all_data = {}
@@ -120,9 +135,9 @@ def spot_data(gui_values, spotpatterns):
     abn_gr = []
 
     for e in en:
-        mea_spot_loc = spotpatterns[str(e)].output.spots_info
+        mea_spot_loc = spotpatterns[str(e)].spots_info
         device = 'XRV-' + spotpatterns[str(e)].output.device
-        mloc = spotpatterns[str(e)].output.mloc
+        mloc = spotpatterns[str(e)].mloc
         spot = spotpatterns[str(e)].spot
         loc_names = list(mea_spot_loc.keys()) # list of spot position name corresponding to the spot grid
 
@@ -186,6 +201,7 @@ def spot_data(gui_values, spotpatterns):
     return all_data, device
 
 def main():
+    theme = 'DefaultNoMoreNagging'
     window = make_window(theme)
 
     while True:
@@ -195,72 +211,117 @@ def main():
 # # ------------------------------------ debug---------------------------------------
 # -----------------------------------------------------------------------------------
         event = 'Submit'
-
-        # values = {'-person1-': 'KC', '-person2-': 'TNC', '-gantry-': '3', '-gantry_angle-': '0', '-pro_en_1-': '70', '-bmp_loc_1-': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/my_spot_analysis/dummyData/G3_XRV4000_2022_03_03/run01_zero1/2022_0303_0001_70/00000001.bmp', 'Browse': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/my_spot_analysis/dummyData/G3_XRV4000_2022_03_03/run01_zero1/2022_0303_0001_70/00000001.bmp', '-pro_en_2-': '100', '-bmp_loc_2-': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/my_spot_analysis/dummyData/G3_XRV4000_2022_03_03/run01_zero1/2022_0303_0002_100/00000001.bmp', 'Browse0': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/my_spot_analysis/dummyData/G3_XRV4000_2022_03_03/run01_zero1/2022_0303_0002_100/00000001.bmp', '-pro_en_3-': '150', '-bmp_loc_3-': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/my_spot_analysis/dummyData/G3_XRV4000_2022_03_03/run01_zero1/2022_0303_0003_150/00000001.bmp', 'Browse1': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/my_spot_analysis/dummyData/G3_XRV4000_2022_03_03/run01_zero1/2022_0303_0003_150/00000001.bmp', '-pro_en_4-': '200', '-bmp_loc_4-': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/my_spot_analysis/dummyData/G3_XRV4000_2022_03_03/run01_zero1/2022_0303_0004_200/00000001.bmp', 'Browse2': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/my_spot_analysis/dummyData/G3_XRV4000_2022_03_03/run01_zero1/2022_0303_0004_200/00000001.bmp', '-pro_en_5-': '240', '-bmp_loc_5-': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/my_spot_analysis/dummyData/G3_XRV4000_2022_03_03/run01_zero1/2022_0303_0005_240/00000001.bmp', 'Browse3': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/my_spot_analysis/dummyData/G3_XRV4000_2022_03_03/run01_zero1/2022_0303_0005_240/00000001.bmp', '-comment-': ''}
-
-         # ## C:\Users\KAWCHUNG\OneDrive - NHS\python_code\dummyData\2022_01_04_xrv3000_G1_VR
-        # values = {'-person1-': 'VR', '-person2-': '', '-gantry-': '1', '-gantry_angle-': '0', '-pro_en_1-': '70', '-bmp_loc_1-': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/dummyData/2022_01_04_xrv3000_G1_VR/0_240_2022_0104_0011/00000001.bmp', 'Browse': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/dummyData/2022_01_04_xrv3000_G1_VR/0_240_2022_0104_0011/00000001.bmp', '-pro_en_2-': '100', '-bmp_loc_2-': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/dummyData/2022_01_04_xrv3000_G1_VR/0_200_2022_0104_0012/00000001.bmp', 'Browse0': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/dummyData/2022_01_04_xrv3000_G1_VR/0_200_2022_0104_0012/00000001.bmp', '-pro_en_3-': '150', '-bmp_loc_3-': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/dummyData/2022_01_04_xrv3000_G1_VR/0_150_2022_0104_0013/00000001.bmp', 'Browse1': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/dummyData/2022_01_04_xrv3000_G1_VR/0_150_2022_0104_0013/00000001.bmp', '-pro_en_4-': '200', '-bmp_loc_4-': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/dummyData/2022_01_04_xrv3000_G1_VR/0_100_2022_0104_0014/00000001.bmp', 'Browse2': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/dummyData/2022_01_04_xrv3000_G1_VR/0_100_2022_0104_0014/00000001.bmp', '-pro_en_5-': '240', '-bmp_loc_5-': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/dummyData/2022_01_04_xrv3000_G1_VR/0_70_2022_0104_0015/00000001.bmp', 'Browse3': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/dummyData/2022_01_04_xrv3000_G1_VR/0_70_2022_0104_0015/00000001.bmp', '-comment-': ''}
-
-        # ## O:\protons\Dosimetry_and_QA\Routine QA\Spot Grids\4000\Gantry 2\2022-04-12\2022_0412_0004
-        # values = {'-person1-': 'AM', '-person2-': 'CG', '-gantry-': '1', '-gantry_angle-': '0', '-pro_en_1-': '70', '-bmp_loc_1-': 'O:/protons/Dosimetry_and_QA/Routine QA/Spot Grids/4000/Gantry 2/2022-04-12/2022_0412_0004/00000001.bmp', 'Browse': 'O:/protons/Dosimetry_and_QA/Routine QA/Spot Grids/4000/Gantry 2/2022-04-12/2022_0412_0004/00000001.bmp', '-pro_en_2-': '100', '-bmp_loc_2-': 'O:/protons/Dosimetry_and_QA/Routine QA/Spot Grids/4000/Gantry 2/2022-04-12/2022_0412_0005/00000001.bmp', 'Browse0': 'O:/protons/Dosimetry_and_QA/Routine QA/Spot Grids/4000/Gantry 2/2022-04-12/2022_0412_0005/00000001.bmp', '-pro_en_3-': '150', '-bmp_loc_3-': 'O:/protons/Dosimetry_and_QA/Routine QA/Spot Grids/4000/Gantry 2/2022-04-12/2022_0412_0006/00000001.bmp', 'Browse1': 'O:/protons/Dosimetry_and_QA/Routine QA/Spot Grids/4000/Gantry 2/2022-04-12/2022_0412_0006/00000001.bmp', '-pro_en_4-': '200', '-bmp_loc_4-': 'O:/protons/Dosimetry_and_QA/Routine QA/Spot Grids/4000/Gantry 2/2022-04-12/2022_0412_0007/00000001.bmp', 'Browse2': 'O:/protons/Dosimetry_and_QA/Routine QA/Spot Grids/4000/Gantry 2/2022-04-12/2022_0412_0007/00000001.bmp', '-pro_en_5-': '240', '-bmp_loc_5-': 'O:/protons/Dosimetry_and_QA/Routine QA/Spot Grids/4000/Gantry 2/2022-04-12/2022_0412_0008/00000001.bmp', 'Browse3': 'O:/protons/Dosimetry_and_QA/Routine QA/Spot Grids/4000/Gantry 2/2022-04-12/2022_0412_0008/00000001.bmp', '-comment-': ''}
-        # print(f'values: {values}')
+        values = {'-PERSON1-': 'KC', '-PERSON2-': '', '-GANTRY-': '4', '-GANTRY_ANGLE-': '0', '-PRO_EN_1-': '70', '-BMP_LOC_1-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/GA0 only (usually 4000 data)/2022_07_13_KC/run01_align_with_laser/2022_0713_0001/00000001.bmp', 'Browse': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/GA0 only (usually 4000 data)/2022_07_13_KC/run01_align_with_laser/2022_0713_0001/00000001.bmp', '-PRO_EN_2-': '100', '-BMP_LOC_2-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/GA0 only (usually 4000 data)/2022_07_13_KC/run01_align_with_laser/2022_0713_0002/00000001.bmp', 'Browse0': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/GA0 only (usually 4000 data)/2022_07_13_KC/run01_align_with_laser/2022_0713_0002/00000001.bmp', '-PRO_EN_3-': '150', '-BMP_LOC_3-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/GA0 only (usually 4000 data)/2022_07_13_KC/run01_align_with_laser/2022_0713_0003/00000001.bmp', 'Browse1': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/GA0 only (usually 4000 data)/2022_07_13_KC/run01_align_with_laser/2022_0713_0003/00000001.bmp', '-PRO_EN_4-': '200', '-BMP_LOC_4-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/GA0 only (usually 4000 data)/2022_07_13_KC/run01_align_with_laser/2022_0713_0004/00000001.bmp', 'Browse2': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/GA0 only (usually 4000 data)/2022_07_13_KC/run01_align_with_laser/2022_0713_0004/00000001.bmp', '-PRO_EN_5-': '240', '-BMP_LOC_5-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/GA0 only (usually 4000 data)/2022_07_13_KC/run01_align_with_laser/2022_0713_0005/00000001.bmp', 'Browse3': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/GA0 only (usually 4000 data)/2022_07_13_KC/run01_align_with_laser/2022_0713_0005/00000001.bmp', '-COMMENT-': ''}
+        # values =  {'-PERSON1-': 'KC', '-PERSON2-': '', '-GANTRY-': '4', '-GANTRY_ANGLE-': '0', '-PRO_EN_1-': '70', '-BMP_LOC_1-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/2022_07_13_KC/run01_align_with_laser/2022_0713_0001/00000001.bmp', 'Browse': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/2022_07_13_KC/run01_align_with_laser/2022_0713_0001/00000001.bmp', '-PRO_EN_2-': '100', '-BMP_LOC_2-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/2022_07_13_KC/run01_align_with_laser/2022_0713_0002/00000001.bmp', 'Browse0': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/2022_07_13_KC/run01_align_with_laser/2022_0713_0002/00000001.bmp', '-PRO_EN_3-': '150', '-BMP_LOC_3-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/2022_07_13_KC/run01_align_with_laser/2022_0713_0003/00000001.bmp', 'Browse1': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/2022_07_13_KC/run01_align_with_laser/2022_0713_0003/00000001.bmp', '-PRO_EN_4-': '200', '-BMP_LOC_4-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/2022_07_13_KC/run01_align_with_laser/2022_0713_0004/00000001.bmp', 'Browse2': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/2022_07_13_KC/run01_align_with_laser/2022_0713_0004/00000001.bmp', '-PRO_EN_5-': '240', '-BMP_LOC_5-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/2022_07_13_KC/run01_align_with_laser/2022_0713_0005/00000001.bmp', 'Browse3': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/2022_07_13_KC/run01_align_with_laser/2022_0713_0005/00000001.bmp', '-COMMENT-': ''}
+        # values = {'-PERSON1-': 'AG', '-PERSON2-': '', '-GANTRY-': '2', '-GANTRY_ANGLE-': '0', '-PRO_EN_1-': '70', '-BMP_LOC_1-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 2/GA0 only (usually 4000 data)/2022-07-18 G2_post_Kapton_window/2022_0718_0002/00000001.bmp', 'Browse': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 2/GA0 only (usually 4000 data)/2022-07-18 G2_post_Kapton_window/2022_0718_0002/00000001.bmp', '-PRO_EN_2-': '100', '-BMP_LOC_2-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 2/GA0 only (usually 4000 data)/2022-07-18 G2_post_Kapton_window/2022_0718_0003/00000001.bmp', 'Browse0': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 2/GA0 only (usually 4000 data)/2022-07-18 G2_post_Kapton_window/2022_0718_0003/00000001.bmp', '-PRO_EN_3-': '150', '-BMP_LOC_3-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 2/GA0 only (usually 4000 data)/2022-07-18 G2_post_Kapton_window/2022_0718_0004/00000001.bmp', 'Browse1': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 2/GA0 only (usually 4000 data)/2022-07-18 G2_post_Kapton_window/2022_0718_0004/00000001.bmp', '-PRO_EN_4-': '200', '-BMP_LOC_4-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 2/GA0 only (usually 4000 data)/2022-07-18 G2_post_Kapton_window/2022_0718_0005/00000001.bmp', 'Browse2': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 2/GA0 only (usually 4000 data)/2022-07-18 G2_post_Kapton_window/2022_0718_0005/00000001.bmp', '-PRO_EN_5-': '240', '-BMP_LOC_5-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 2/GA0 only (usually 4000 data)/2022-07-18 G2_post_Kapton_window/2022_0718_0006/00000001.bmp', 'Browse3': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 2/GA0 only (usually 4000 data)/2022-07-18 G2_post_Kapton_window/2022_0718_0006/00000001.bmp', '-COMMENT-': ''}
+        print(f'values: {values}')
 
 # -----------------------------------------------------------------------------------
 # # ------------------------------------ debug---------------------------------------
 # -----------------------------------------------------------------------------------
-        # ## get the operators
-        p1 = values['-person1-']
-        p2 = values['-person2-']
+        if event == 'Exit' or sg.WIN_CLOSED:
+            window.close()
+
+        # ## get all gui entries report
+        p1 = values['-PERSON1-']
+        p2 = values['-PERSON2-']
+
+        # ## reject duplicated operators or empty operator 1
+        try:
+            # ## reject duplicated operators or empty operator 1
+            if values['-PERSON1-'] == values['-PERSON2-']:
+                sg.popup('ERROR MESSAGE!','operator 1 and 2 are the same! please entre the correct operators!')
+                continue
+
+            if values['-PERSON1-'] == '':
+                sg.popup('ERROR MESSAGE!','operator 1 is empty.!')
+                continue
+        except:
+            print(f'please check your entry on the gui')
+
+        # #>> check gantry
+        try:
+            if values['-GANTRY-'] not in ['1', '2', '3', '4'] or values['-GANTRY-'] == '':
+                sg.popup('ERROR MESSAGE!', f'please check your gantry entry :)')
+                continue
+
+            # #>> check gantry angle
+            if values['-GANTRY_ANGLE-'] == "":
+                sg.popup('ERROR MESSAGE!', f'please check your gantry angle entry :)')
+                continue
+        except:
+            print(f'please check your entry on the gui')
+
+        # ## reject  empty bmp locations
+        # # count the number of bmps from the gui
+        nbmp = 0
+        for k in values.keys():
+            if 'BMP_LOC' in k:
+                nbmp = nbmp+1
+
+        # # find the proton energ(ies) of missing bmp
+        mEn = []
+        # mbmp = []
+        bmps = []
+        dEn = []
+        for i in range(1, nbmp+1):
+            me = f'-PRO_EN_{str(i)}-'
+            mb = f'-BMP_LOC_{str(i)}-'
+            if values[mb] in bmps:
+                me_1 = f'-PRO_EN_{str(i-1)}-'
+                dEn.append(values[me_1])
+                dEn.append(values[me])
+            else:
+                bmps.append(values[mb])
+            if values[mb] =='':
+                mEn.append(values[me])
+
+
+
+        # find energ(ies) of missing bmps
+        try:
+            if mEn:
+                msg = ['Missing bmp location(s) for ']
+                for e in mEn:
+                    msg.append(f'{e} MeV ')
+                sg.popup('ERROR MESSAGE!', f'{msg}')
+                continue
+
+        except: # '' is not found
+            pass
+
+        # find energ(ies) of missing bmps
+        try:
+            if dEn:
+                dEn = list(set(dEn))
+                sg.popup('ERROR MESSAGE!', f'duplicated bmp location(s) found at {dEn} MeV')
+                continue
+
+        except: # no duplicated bmp locations
+            pass
 
         # ## change directory and save data
-        path = values['-bmp_loc_1-'].split(os.sep)
-
-        # ## reject duplicated operators
-        if values['-person1-'] == values['-person2-']:
-            sg.popup('ERROR MESSAGE!','same operator 1 and operator 2! That is NOT okay. Analysis terminated.')
-            break
+        window.close()
 
         # ## start analysis when gantry, gantry angle and operator(s) are correctly filled.
         spotpatterns = {}
-        if event == 'Submit' and values['-gantry-'] != '' and values['-gantry_angle-'] != '' and values['-person1-'] != '' :
-            en = []
-            bmp_dir = []
-            rep_dir = []
-            for i in range(1,6):
-                str1 = '-pro_en_%s-' % str(i)
-                str2 = '-bmp_loc_%s-' % str(i)
-                if values[str1] not in en:
-                    en.append(values[str1])
-                else:
-                    sg.popup('ERROR MESSAGE!','You have entred %s MeV twice! Please have a look at the Proton energy column! Analysis terminated.' % str(values[str1]))
-                    break
-
-                if values[str2] not in bmp_dir:
-                    bmp_dir.append(values[str2])
-                else:
-                    sg.popup('ERROR MESSAGE!','Double check your bmp location column! Duplicated entry detected. Analysis terminated.' )
-                    rep_dir.append(i)
-                    break # break the loop when the same bmp location is entred, at least, twice.
-
-                spotpatterns.update({values[str1]: spm.SpotPattern(values[str2])})
-        else:
-            sg.popup('ERROR MESSAGE!','You hit SUBMIT but either your Gantry, Gantry angle or Operator 1 is empty. Analysis terminated.' )
-            break
-
-        # ##  break while loop if spotpatterns is not empty
-        if rep_dir:
-            break
+        for i in range(1, nbmp+1):
+            str1 = f'-PRO_EN_{str(i)}-'
+            str2 = f'-BMP_LOC_{str(i)}-'
+                # print(f'-------------------------')
+                # print(f'>>>energy: {values[str1]}')
+                # print(f'-------------------------')
+            spotpatterns.update({values[str1]: spm.SpotPattern(values[str2])})
 
         all_data, device= spot_data(values, spotpatterns)
 
         # ## get measurement date
-        # adate = db.get_mea_time(spotpatterns)
-        # date = adate.strftime('%Y-%m-%d')
-        # # result_folder = 'results_' + date + '_gantry' + str(values['-gantry-'])
-        result_folder = 'results'
+        adate = db.get_mea_time(spotpatterns)
+        date = adate.strftime('%Y-%m-%d')
 
+        result_folder = f'results_{date}'
 
-        path_to_bmp, bmp = os.path.split(values['-bmp_loc_1-'])
+        path_to_bmp, bmp = os.path.split(values['-BMP_LOC_1-'])
         result_dir = os.path.dirname(path_to_bmp)
 
         os.chdir(result_dir)
@@ -274,7 +335,6 @@ def main():
             os.chdir(result_dir)
             os.mkdir(result_folder)
             os.chdir(result_folder)
-
 
         # ## start analysis
         df = []
@@ -304,15 +364,18 @@ def main():
 
 
         rp.make_table(df)
-        rp.spot_report(df, p1, p2, fpath, gr_path, prof_path)
-
-        window.close()
+        comments = values['-COMMENT-']
+        rp.spot_report(df, p1, p2, fpath, gr_path, prof_path, comments)
 
         # ## Data to proton database
         window2 = make_window_after_reviewing_data(theme)
         event2, values2 = window2.read()
 
         window2.close()
+
+        rp.make_table(df)
+        comments = values['-COMMENT-'] + ' ' + values2['-COMMENT2-']
+        rp.spot_report(df, p1, p2, fpath, gr_path, prof_path, comments)
 
         if event2 == 'Submit':
             # push data to the Database
@@ -332,5 +395,5 @@ def main():
 
 
 if __name__ == '__main__':
-    theme = 'DefaultNoMoreNagging'
+
     main()

@@ -2,15 +2,10 @@
  # List of constants
 
 # operators
-operators = ('AB', 'AG', 'AK', 'AM', 'AP', 'AT', 'AW', 'CB', 'CG', 'KC', 'PI', 'RM', 'SC', 'SG', 'TNC', 'VMA', 'VR', 'NA')
+operators = ('AB', 'AG', 'AGr', 'AK', 'AM', 'AP', 'AT', 'AW', 'CB', 'CG', 'KC', 'PI', 'RM', 'SC', 'SG', 'TNC', 'VMA', 'VR', 'NA')
 gantries = ('1', '2', '3', '4')
 
 # relate to the grid
-# xrv4000_loc = ['Top-Top-Left', 'Top-Top-Centre', 'Top-Top-Right',\
-#                 'Top-Left', 'Top-Centre', 'Top-Right', \
-#                 'Left',   'Centre', 'Right',  \
-#                 'Bottom-Left', 'Bottom-Centre', 'Bottom-Right',  \
-#                  'Bottom-Bottom-Left', 'Bottom-Bottom-Centre','Bottom-Bottom-Right']
 
 pred_xrv4000 = {'Top-Top-Left': [-125, -175], 'Top-Top-Centre': [0, -175], 'Top-Top-Right': [125, -175], \
                 'Top-Left': [-125, -125], 'Top-Centre':[0, -125], 'Top-Right':[125, -125], \
@@ -18,34 +13,30 @@ pred_xrv4000 = {'Top-Top-Left': [-125, -175], 'Top-Top-Centre': [0, -175], 'Top-
                 'Bottom-Left': [-125, 125], 'Bottom-Centre':[0, 125], 'Bottom-Right':[125, 125], \
                 'Bottom-Bottom-Left': [-125, 175], 'Bottom-Bottom-Centre': [0, 175], 'Bottom-Bottom-Right': [125, 175]}
 
-
-# xrv3000_loc =['Top-Left', 'Top-Centre', 'Top-Right',  \
-#               'Left', 'Centre', 'Right',\
-#               'Bottom-Left', 'Bottom-Centre', 'Bottom-Right']
-
 pred_xrv3000 = {'Top-Left': [-125, -125], 'Top-Centre':[0, -125], 'Top-Right':[125, -125], \
                 'Left': [-125, 0], 'Centre':[0, 0], 'Right':[125, 0], \
                 'Bottom-Left': [-125, 125], 'Bottom-Centre':[0, 125], 'Bottom-Right':[125, 125]}
 
-plan_loc_l = [-175, -125, 0, 125, 175]
-plan_loc_s = [-125,  0, 125]
+# plan_loc_l = [-175, -125, 0, 125, 175]
+# plan_loc_s = [-125,  0, 125]
 
 # ## related to database
 
 # #  Callum dummy database
-# DATABASE_DIR = r"C:\Users\KAWCHUNG\OneDrive - NHS\python_code\my_spot_analysis\Spot_Grid_Testing.accdb"
+DATABASE_DIR = r"C:\Users\KAWCHUNG\OneDrive - NHS\python_code\spot-analysis\Spot_Grid_Testing.accdb"
 
 # # Real proton database from Alison. We should push data to the backend of the database
 # DATABASE_DIR = r"R:\AssetsDatabase_be.accdb"
 
-# # Real proton database. Front end
-DATABASE_DIR = r"\\9.40.120.20\\rtassetBE\AssetsDatabase_be.accdb"
+# # Real proton database. back end.
+# DATABASE_DIR = r"\\9.40.120.20\\rtassetBE\AssetsDatabase_be.accdb"
 
 # ASSESS database front end password
 # PWD = "Pr0ton5%"
 
 # ASSESS database backend password
 PWD = "JoNiSi"
+# PWD = "TEST"
 
 db_cols = ['date', 'gantry', 'energy', 'device', 'gantry_angle', 'spot', 'x-pos', 'y-pos', \
             'hor_r_grad', 'hor_l_grad', 'hor_fwhm', \
