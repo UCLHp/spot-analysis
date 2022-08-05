@@ -23,7 +23,7 @@ pred_xrv3000 = {'Top-Left': [-125, -125], 'Top-Centre':[0, -125], 'Top-Right':[1
 # ## related to database
 
 # #  Callum dummy database
-DATABASE_DIR = r"C:\Users\KAWCHUNG\OneDrive - NHS\python_code\spot-analysis\Spot_Grid_Testing.accdb"
+DATABASE_DIR = r"C:\Users\cgillies.UCLH\Desktop\Spot_Grid_Testing.accdb"
 
 # # Real proton database from Alison. We should push data to the backend of the database
 # DATABASE_DIR = r"R:\AssetsDatabase_be.accdb"

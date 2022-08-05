@@ -224,6 +224,7 @@ def main():
 # -----------------------------------------------------------------------------------
         if event == 'Exit' or sg.WIN_CLOSED:
             window.close()
+            raise SystemExit
 
         # ## get all gui entries report
         p1 = values['-PERSON1-']
