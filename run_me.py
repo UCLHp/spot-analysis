@@ -41,6 +41,8 @@ def make_window(theme):
     pbt = db.fetch_db(DATABASE_DIR, 'Operators', 'Initials', PWD = PWD)
 
     if pbt == False:
+        eg.msgbox("Unable to fetch operators from database, "
+                  "list may not be up to date.")
         operators = cs.operators
     else:
         operators = pbt

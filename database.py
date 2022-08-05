@@ -111,7 +111,7 @@ def fetch_db(DATABASE_DIR, table, col,  *, PWD = DB_PWD):
     conn, cursor = connect_db(DATABASE_DIR , PWD = DB_PWD)
 
     if conn == False:
-        col = False
+        col_lt = False
     else:
         col = cursor.execute(f'SELECT {col} FROM [{table}]')
         col = col.fetchall()
