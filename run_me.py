@@ -218,11 +218,10 @@ def main():
         # values =  {'-PERSON1-': 'KC', '-PERSON2-': '', '-GANTRY-': '4', '-GANTRY_ANGLE-': '0', '-PRO_EN_1-': '70', '-BMP_LOC_1-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/2022_07_13_KC/run01_align_with_laser/2022_0713_0001/00000001.bmp', 'Browse': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/2022_07_13_KC/run01_align_with_laser/2022_0713_0001/00000001.bmp', '-PRO_EN_2-': '100', '-BMP_LOC_2-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/2022_07_13_KC/run01_align_with_laser/2022_0713_0002/00000001.bmp', 'Browse0': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/2022_07_13_KC/run01_align_with_laser/2022_0713_0002/00000001.bmp', '-PRO_EN_3-': '150', '-BMP_LOC_3-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/2022_07_13_KC/run01_align_with_laser/2022_0713_0003/00000001.bmp', 'Browse1': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/2022_07_13_KC/run01_align_with_laser/2022_0713_0003/00000001.bmp', '-PRO_EN_4-': '200', '-BMP_LOC_4-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/2022_07_13_KC/run01_align_with_laser/2022_0713_0004/00000001.bmp', 'Browse2': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/2022_07_13_KC/run01_align_with_laser/2022_0713_0004/00000001.bmp', '-PRO_EN_5-': '240', '-BMP_LOC_5-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/2022_07_13_KC/run01_align_with_laser/2022_0713_0005/00000001.bmp', 'Browse3': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/2022_07_13_KC/run01_align_with_laser/2022_0713_0005/00000001.bmp', '-COMMENT-': ''}
         # values = {'-PERSON1-': 'AG', '-PERSON2-': '', '-GANTRY-': '2', '-GANTRY_ANGLE-': '0', '-PRO_EN_1-': '70', '-BMP_LOC_1-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 2/GA0 only (usually 4000 data)/2022-07-18 G2_post_Kapton_window/2022_0718_0002/00000001.bmp', 'Browse': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 2/GA0 only (usually 4000 data)/2022-07-18 G2_post_Kapton_window/2022_0718_0002/00000001.bmp', '-PRO_EN_2-': '100', '-BMP_LOC_2-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 2/GA0 only (usually 4000 data)/2022-07-18 G2_post_Kapton_window/2022_0718_0003/00000001.bmp', 'Browse0': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 2/GA0 only (usually 4000 data)/2022-07-18 G2_post_Kapton_window/2022_0718_0003/00000001.bmp', '-PRO_EN_3-': '150', '-BMP_LOC_3-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 2/GA0 only (usually 4000 data)/2022-07-18 G2_post_Kapton_window/2022_0718_0004/00000001.bmp', 'Browse1': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 2/GA0 only (usually 4000 data)/2022-07-18 G2_post_Kapton_window/2022_0718_0004/00000001.bmp', '-PRO_EN_4-': '200', '-BMP_LOC_4-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 2/GA0 only (usually 4000 data)/2022-07-18 G2_post_Kapton_window/2022_0718_0005/00000001.bmp', 'Browse2': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 2/GA0 only (usually 4000 data)/2022-07-18 G2_post_Kapton_window/2022_0718_0005/00000001.bmp', '-PRO_EN_5-': '240', '-BMP_LOC_5-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 2/GA0 only (usually 4000 data)/2022-07-18 G2_post_Kapton_window/2022_0718_0006/00000001.bmp', 'Browse3': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 2/GA0 only (usually 4000 data)/2022-07-18 G2_post_Kapton_window/2022_0718_0006/00000001.bmp', '-COMMENT-': ''}
         print(f'values: {values}')
-
 # -----------------------------------------------------------------------------------
 # # ------------------------------------ debug---------------------------------------
 # -----------------------------------------------------------------------------------
-        if event == 'Exit' or sg.WIN_CLOSED:
+        if event == 'Exit' or event == sg.WIN_CLOSED:
             window.close()
             raise SystemExit
 
@@ -238,7 +237,7 @@ def main():
                 continue
 
             if values['-PERSON1-'] == '':
-                sg.popup('ERROR MESSAGE!','operator 1 is empty.!')
+                sg.popup('ERROR MESSAGE!','operator 1 is empty!')
                 continue
         except:
             print(f'please check your entry on the gui')
