@@ -215,9 +215,8 @@ def main():
         # event = 'Submit'
         # values = {'-PERSON1-': 'KC', '-PERSON2-': '', '-GANTRY-': '4', '-GANTRY_ANGLE-': '0', '-PRO_EN_1-': '70', '-BMP_LOC_1-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/GA0 only (usually 4000 data)/2022_07_13_KC/run01_align_with_laser/2022_0713_0001/00000001.bmp', 'Browse': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/GA0 only (usually 4000 data)/2022_07_13_KC/run01_align_with_laser/2022_0713_0001/00000001.bmp', '-PRO_EN_2-': '100', '-BMP_LOC_2-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/GA0 only (usually 4000 data)/2022_07_13_KC/run01_align_with_laser/2022_0713_0002/00000001.bmp', 'Browse0': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/GA0 only (usually 4000 data)/2022_07_13_KC/run01_align_with_laser/2022_0713_0002/00000001.bmp', '-PRO_EN_3-': '150', '-BMP_LOC_3-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/GA0 only (usually 4000 data)/2022_07_13_KC/run01_align_with_laser/2022_0713_0003/00000001.bmp', 'Browse1': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/GA0 only (usually 4000 data)/2022_07_13_KC/run01_align_with_laser/2022_0713_0003/00000001.bmp', '-PRO_EN_4-': '200', '-BMP_LOC_4-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/GA0 only (usually 4000 data)/2022_07_13_KC/run01_align_with_laser/2022_0713_0004/00000001.bmp', 'Browse2': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/GA0 only (usually 4000 data)/2022_07_13_KC/run01_align_with_laser/2022_0713_0004/00000001.bmp', '-PRO_EN_5-': '240', '-BMP_LOC_5-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/GA0 only (usually 4000 data)/2022_07_13_KC/run01_align_with_laser/2022_0713_0005/00000001.bmp', 'Browse3': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/GA0 only (usually 4000 data)/2022_07_13_KC/run01_align_with_laser/2022_0713_0005/00000001.bmp', '-COMMENT-': ''}
 
-        # values =  {'-PERSON1-': 'KC', '-PERSON2-': '', '-GANTRY-': '4', '-GANTRY_ANGLE-': '0', '-PRO_EN_1-': '70', '-BMP_LOC_1-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/2022_07_13_KC/run01_align_with_laser/2022_0713_0001/00000001.bmp', 'Browse': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/2022_07_13_KC/run01_align_with_laser/2022_0713_0001/00000001.bmp', '-PRO_EN_2-': '100', '-BMP_LOC_2-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/2022_07_13_KC/run01_align_with_laser/2022_0713_0002/00000001.bmp', 'Browse0': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/2022_07_13_KC/run01_align_with_laser/2022_0713_0002/00000001.bmp', '-PRO_EN_3-': '150', '-BMP_LOC_3-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/2022_07_13_KC/run01_align_with_laser/2022_0713_0003/00000001.bmp', 'Browse1': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/2022_07_13_KC/run01_align_with_laser/2022_0713_0003/00000001.bmp', '-PRO_EN_4-': '200', '-BMP_LOC_4-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/2022_07_13_KC/run01_align_with_laser/2022_0713_0004/00000001.bmp', 'Browse2': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/2022_07_13_KC/run01_align_with_laser/2022_0713_0004/00000001.bmp', '-PRO_EN_5-': '240', '-BMP_LOC_5-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/2022_07_13_KC/run01_align_with_laser/2022_0713_0005/00000001.bmp', 'Browse3': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/2022_07_13_KC/run01_align_with_laser/2022_0713_0005/00000001.bmp', '-COMMENT-': ''}
-        # values = {'-PERSON1-': 'AG', '-PERSON2-': '', '-GANTRY-': '2', '-GANTRY_ANGLE-': '0', '-PRO_EN_1-': '70', '-BMP_LOC_1-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 2/GA0 only (usually 4000 data)/2022-07-18 G2_post_Kapton_window/2022_0718_0002/00000001.bmp', 'Browse': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 2/GA0 only (usually 4000 data)/2022-07-18 G2_post_Kapton_window/2022_0718_0002/00000001.bmp', '-PRO_EN_2-': '100', '-BMP_LOC_2-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 2/GA0 only (usually 4000 data)/2022-07-18 G2_post_Kapton_window/2022_0718_0003/00000001.bmp', 'Browse0': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 2/GA0 only (usually 4000 data)/2022-07-18 G2_post_Kapton_window/2022_0718_0003/00000001.bmp', '-PRO_EN_3-': '150', '-BMP_LOC_3-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 2/GA0 only (usually 4000 data)/2022-07-18 G2_post_Kapton_window/2022_0718_0004/00000001.bmp', 'Browse1': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 2/GA0 only (usually 4000 data)/2022-07-18 G2_post_Kapton_window/2022_0718_0004/00000001.bmp', '-PRO_EN_4-': '200', '-BMP_LOC_4-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 2/GA0 only (usually 4000 data)/2022-07-18 G2_post_Kapton_window/2022_0718_0005/00000001.bmp', 'Browse2': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 2/GA0 only (usually 4000 data)/2022-07-18 G2_post_Kapton_window/2022_0718_0005/00000001.bmp', '-PRO_EN_5-': '240', '-BMP_LOC_5-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 2/GA0 only (usually 4000 data)/2022-07-18 G2_post_Kapton_window/2022_0718_0006/00000001.bmp', 'Browse3': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 2/GA0 only (usually 4000 data)/2022-07-18 G2_post_Kapton_window/2022_0718_0006/00000001.bmp', '-COMMENT-': ''}
-        print(f'values: {values}')
+        # values = {'-PERSON1-': 'KC', '-PERSON2-': '', '-GANTRY-': '4', '-GANTRY_ANGLE-': '0', '-PRO_EN_1-': '70', '-BMP_LOC_1-': 'D:/OneDrive - NHS/python_code/spot-analysis/miscellaneous/2022_07_13_KC/run01_align_with_laser/2022_0713_0001/00000001.bmp', 'Browse': 'D:/OneDrive - NHS/python_code/spot-analysis/miscellaneous/2022_07_13_KC/run01_align_with_laser/2022_0713_0001/00000001.bmp', '-PRO_EN_2-': '100', '-BMP_LOC_2-': 'D:/OneDrive - NHS/python_code/spot-analysis/miscellaneous/2022_07_13_KC/run01_align_with_laser/2022_0713_0002/00000001.bmp', 'Browse0': 'D:/OneDrive - NHS/python_code/spot-analysis/miscellaneous/2022_07_13_KC/run01_align_with_laser/2022_0713_0002/00000001.bmp', '-PRO_EN_3-': '150', '-BMP_LOC_3-': 'D:/OneDrive - NHS/python_code/spot-analysis/miscellaneous/2022_07_13_KC/run01_align_with_laser/2022_0713_0003/00000001.bmp', 'Browse1': 'D:/OneDrive - NHS/python_code/spot-analysis/miscellaneous/2022_07_13_KC/run01_align_with_laser/2022_0713_0003/00000001.bmp', '-PRO_EN_4-': '200', '-BMP_LOC_4-': 'D:/OneDrive - NHS/python_code/spot-analysis/miscellaneous/2022_07_13_KC/run01_align_with_laser/2022_0713_0004/00000001.bmp', 'Browse2': 'D:/OneDrive - NHS/python_code/spot-analysis/miscellaneous/2022_07_13_KC/run01_align_with_laser/2022_0713_0004/00000001.bmp', '-PRO_EN_5-': '240', '-BMP_LOC_5-': 'D:/OneDrive - NHS/python_code/spot-analysis/miscellaneous/2022_07_13_KC/run01_align_with_laser/2022_0713_0005/00000001.bmp', 'Browse3': 'D:/OneDrive - NHS/python_code/spot-analysis/miscellaneous/2022_07_13_KC/run01_align_with_laser/2022_0713_0005/00000001.bmp', '-COMMENT-': ''}
+        # # print(f'values: {values}')
 # -----------------------------------------------------------------------------------
 # # ------------------------------------ debug---------------------------------------
 # -----------------------------------------------------------------------------------
@@ -256,28 +255,72 @@ def main():
             print(f'please check your entry on the gui')
 
         # ## reject  empty bmp locations
-        # # count the number of bmps from the gui
-        nbmp = 0
-        for k in values.keys():
-            if 'BMP_LOC' in k:
-                nbmp = nbmp+1
+
+        kv = list(values.keys())
+        vv = list(values.values())
+        abmp = [] # all bmp locs
+        rbmp = [] # recorded ebmp
+        dEn = [] # duplicated energy
+        mEn = [] # missing energy
+        nbmp = 0 # total no of bmp entries on gui
+
+        # ## if we don't allow empty bmp
+        # for i, v in enumerate(kv):
+        #     if '-BMP_LOC' in v:
+        #         nbmp = nbmp+1
+        #         me = f'-PRO_EN_{str(nbmp)}-'
+        #         mb = f'-BMP_LOC_{str(nbmp)}-'
+        #         if values[mb] == "":
+        #             mEn.append(values[me])
+        #         else:
+        #             abmp.append(values[mb])
+        #             if abmp.count(values[mb]) >1:
+        #                 en_n = [i+1 for i, x in enumerate(abmp) if x == values[mb]] # find the -PRO_EN_n- for duplicated energies
+        #                 for n in en_n:
+        #                     de = f'-PRO_EN_{str(n)}-'
+        #                     dEn.append(values[de])
+
+    # ## if we allow empty bmp
+        for i, v in enumerate(kv):
+                if '-BMP_LOC' in v:
+                    nbmp = nbmp+1
+                    me = f'-PRO_EN_{str(nbmp)}-'
+                    mb = f'-BMP_LOC_{str(nbmp)}-'
+                    if values[mb] != "":
+                        rbmp.append(nbmp)
+                        abmp.append(values[mb])
+                        if abmp.count(values[mb]) >1:
+                            en_n = [i+1 for i, x in enumerate(abmp) if x == values[mb]] # find the -PRO_EN_n- for duplicated energies
+                            for n in en_n:
+                                de = f'-PRO_EN_{str(n)}-'
+                                dEn.append(values[de])
+
+
+
+
+
+        # # count the number of bmps from the gui ## CG evaluation
+        # nbmp = 0
+        # for k in values.keys():
+        #     if 'BMP_LOC' in k:
+        #         nbmp = nbmp+1
 
         # # find the proton energ(ies) of missing bmp
-        mEn = []
-        # mbmp = []
-        bmps = []
-        dEn = []
-        for i in range(1, nbmp+1):
-            me = f'-PRO_EN_{str(i)}-'
-            mb = f'-BMP_LOC_{str(i)}-'
-            if values[mb] in bmps:
-                me_1 = f'-PRO_EN_{str(i-1)}-'
-                dEn.append(values[me_1])
-                dEn.append(values[me])
-            else:
-                bmps.append(values[mb])
-            if values[mb] =='':
-                mEn.append(values[me])
+        # mEn = []
+        # # mbmp = []
+        # bmps = [] # bmp locations
+        # dEn = [] # energies of duplicated bmp loc
+        # for i in range(1, nb+1):
+        #     me = f'-PRO_EN_{str(i)}-'
+        #     mb = f'-BMP_LOC_{str(i)}-'
+        #     if values[mb] in bmps: # find the duplicated bmp energy
+        #         me_1 = f'-PRO_EN_{str(i-1)}-'
+        #         dEn.append(values[me_1])
+        #         dEn.append(values[me])
+        #     else:
+        #         bmps.append(values[mb])
+        #     if values[mb] =='':
+        #         mEn.append(values[me])
 
 
 
@@ -308,7 +351,8 @@ def main():
 
         # ## start analysis when gantry, gantry angle and operator(s) are correctly filled.
         spotpatterns = {}
-        for i in range(1, nbmp+1):
+        # for i in range(1, nbmp+1):
+        for i in rbmp:
             str1 = f'-PRO_EN_{str(i)}-'
             str2 = f'-BMP_LOC_{str(i)}-'
                 # print(f'-------------------------')
