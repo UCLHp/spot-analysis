@@ -62,7 +62,10 @@ def pass_fail(xs, ys, t, e, p):
 
     return str
 
-def make_table(df):
+def make_table(df, aEn):
+    ''' df is the dataframe output as the result.xlsx files
+        aEn is all energy input in the first Gui
+        to make the summary table in the report'''
 
     ndf = df.groupby('spot')
     ndf = df.set_index('spot')
@@ -70,8 +73,21 @@ def make_table(df):
     t_rel = 1 # relative tolerance
     t_abs = 2 # absolute tolerance
 
-    en = list(pd.unique(df['energy']))
-    pos = list(pd.unique(df['spot']))
+    pos = list(pd.unique(df['spot'])) # spot position detected
+
+    # catch any positions that do not detect a spot for all energy layers
+    device = str(df['device'][0])
+
+    if device == 'XRV-4000':
+        exp_pos = list(cs.pred_xrv4000.keys())
+    elif device == 'XRV-3000':
+        exp_pos = list(cs.pred_xrv3000.keys())
+
+    mspot = [] # find the missing spot location and its energy
+    for p in exp_pos:
+        if p not in pos:
+            for e in aEn:
+                mspot.append([p, str(e)])
 
     data = []
     remarks = {}
@@ -82,11 +98,10 @@ def make_table(df):
     rel = []
     abs = []
 
-    mspot = [] # find the missing spot location and its energy
-
     mfwhm = [] # record any OFT FWHM per spot position per energy
     for p in pos:
         cdf = ndf.loc[p]
+        en = list(pd.unique(cdf['energy']))
 
         abs_fe = []
         rel_fe = []
@@ -98,28 +113,14 @@ def make_table(df):
         en_pos = []
         if no_dim == 2: # has more than two energies detected at the same position
             en_pos = cdf['energy'].tolist()
-        if no_dim == 1: # has only one energy detected at the same position
+        if no_dim == 1: # has only one energy detected at the same position. need to change from dataframe to pd.series
             en_pos.append(cdf['energy'])
             cdf = cdf.to_frame().T
 
         # missing energy per spot location if any
-        men = []
-        for e in en:
-            if e not in en_pos:
-                men.append(e)
-
-        # if en_pos == en:
-        #     pass
-        # else:
-        #     # find the missing energy in that spot position
-        #     for e in en:
-        #         if e not in en_pos:
-        #             men.append(e)
-
-        if men: # if men is not an empty list
-            mspot.append([p, str(men)])
-
-
+        for e in aEn:
+            if int(e) not in en:
+                mspot.append([p, str(e)])
 
         for e in en_pos:
             # if no_dim ==2:
@@ -250,7 +251,8 @@ def make_shift_table(tab_list, pos):
 
     return obj
 
-def spot_report(df, p1, p2, fpath, gr_path, prof_path, comments):
+def spot_report(df, p1, p2, fpath, gr_path, prof_path, comments, aEn):
+    ''' aEn is the proton energy on the first gui'''
     # exam date
     date = pd.unique(df['date'])
     cdate = pd.to_datetime(date).astype(str).to_list()
@@ -276,7 +278,7 @@ def spot_report(df, p1, p2, fpath, gr_path, prof_path, comments):
     # spot position
     pos = pd.unique(df['spot'])
 
-    data, abs_tab, rel_tab, mspot, mfwhm = make_table(df)
+    data, abs_tab, rel_tab, mspot, mfwhm = make_table(df, aEn)
     # pos = list(remarks.keys())
 
     report_name = 'SG_G%s_GA%s_%s.pdf' % (g, ga, d)
@@ -356,7 +358,6 @@ def spot_report(df, p1, p2, fpath, gr_path, prof_path, comments):
 
     # absolute shift table
     if abs_tab:
-        # print(f'abs_tab: {abs_tab}')
         story.append(Paragraph('The spot positions and energies that fail the absolute tolerance:' , sp))
 
 

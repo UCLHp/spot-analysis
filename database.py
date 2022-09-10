@@ -49,22 +49,22 @@ def push_session_data(DATABASE_DIR, session_data,  PWD = DB_PWD ):
 
     conn, cursor = connect_db(DATABASE_DIR , PWD = DB_PWD)
 
-    # sql = '''
-    #       INSERT INTO SpotPositionSession VALUES (?, ?, ?, ?, ?, ?, ?)
-    #
-    #       '''
-    #
     sql = '''
-          INSERT INTO SpotPositionSession VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-          '''
+          INSERT INTO SpotPositionSession VALUES (?, ?, ?, ?, ?, ?, ?)
 
-    # try:
-    cursor.execute(sql, session_data)
-    conn.commit()
-    return True
-# except:
-    print(f' >> fail to push session result to session table in the ASSESS database')
-    return False
+          '''
+    #
+    # sql = '''
+    #       INSERT INTO SpotPositionSession VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    #       '''
+
+    try:
+        cursor.execute(sql, session_data)
+        conn.commit()
+        return True
+    except:
+        print(f' >> fail to push session result to session table in the ASSESS database')
+        return False
 
     return
 

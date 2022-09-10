@@ -185,7 +185,7 @@ class SpotPattern:
         self.mloc, self.match = self.identify_spot() # corrlate the position name with the key in spots_xy
 
         spot_info = {key:0 for key, val in self.mloc.items() if val[0] !=0}
-        # if self.device == "4000":
+
         for key in spot_info.keys():
             # update spots_xy, spots_width(was spots_height), spot_height(was spots_width), spot_diameter, spots_quality
             spot_info[key] = copy.deepcopy(self.mloc[key])
@@ -201,9 +201,6 @@ class SpotPattern:
 
         spt = {key: 0  for key in self.spot_arr.keys()}
         for s in self.spot_arr.keys():
-            # print(f'-----------------------')
-            # print(f'>>>spot location : {s}')
-            # print(f'-----------------------')
             spt[s] = Spot(self.spot_arr[s], self.pixel_loc[s], self.activescript)
 
         self.spot = spt
@@ -231,8 +228,6 @@ class SpotPattern:
         x_lmcp = self.activescript.AppXCenter
         y_lmcp = self.activescript.AppYCenter
 
-        x_mm = [((i/resol_x) - (x_lmcp/resol_x)) for i in range(1, npixel_x+1)]
-        y_mm = [((i/resol_y) - (y_lmcp/resol_y)) for i in range(1, npixel_y+1)]
 
         # # ## find the pixel coordinate of each spot from the bmp image
         pixel_loc = {key:[round((arr[0]*resol_x) + x_lmcp) , round((arr[1]*resol_y) + y_lmcp) ] for key, arr in mloc.items()}
@@ -248,21 +243,6 @@ class SpotPattern:
             spot_arr[key] = single_slice[self.pixel_loc[key][1]- d: self.pixel_loc[key][1]+d+1 , self.pixel_loc[key][0]-d:self.pixel_loc[key][0]+d+1 ]
 
         return spot_arr
-
-        # self.rot_l, self.rot_s = self.flip_ls()
-        self.mloc, self.match = self.identify_spot() # corrlate the position name with the key in spots_xy
-
-        spot_info = {key:0 for key, val in self.mloc.items() if val[0] !=0}
-        # if self.device == "4000":
-        for key in spot_info.keys():
-            # update spots_xy, spots_width(was spots_height), spot_height(was spots_width), spot_diameter, spots_quality
-            spot_info[key] = copy.deepcopy(self.mloc[key])
-            spot_info[key].append(self.spots_height[self.match[key]])
-            spot_info[key].append(self.spots_width[self.match[key]])
-            spot_info[key].append(self.spots_diameter[self.match[key]])
-            spot_info[key].append(self.spots_quality[self.match[key]])
-
-        self.spots_info = spot_info
 
     def identify_spot(self):
         pred_xrv4000 = cs.pred_xrv4000
@@ -297,10 +277,12 @@ class SpotPattern:
                             mloc[pkey] =[float(item[0]), flip_factor*float(item[1])]
                             match[pkey] = key
 
-        for key, item in mloc.items():
+        for key, item in mloc.copy().items():
             if item[0] == 0:
                 if item[1] == 0:
-                    print(f' >>>>> The script does not find any {key} spot! ')
+                    print(f' >>>>> The script does not find the {key} spot(s)! ')
+                    # delete the missing spot
+                    del mloc[key]
 
         return mloc, match
 

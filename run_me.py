@@ -108,10 +108,9 @@ def session_result(gui_values, values2,  spotpatterns):
     gantry_angle = gui_values['-GANTRY_ANGLE-']
     comment = gui_values['-COMMENT-'] + ' ' + values2['-COMMENT2-']
 
-    result = [adate, machine_name, device, gantry_angle, operator1, operator2, comment, None]
-    print(f'result: {result}')
-    # result = [adate, machine_name, device, operator1, operator2, comment, None]
-    # print(f'adate: {adate}  || machine_name: {machine_name} ||  device : {device} || operator1:{operator1}|| comment: {comment} ')
+    # result = [adate, machine_name, device, gantry_angle, operator1, operator2, comment, None]
+    result = [adate, machine_name, device, operator1, operator2, comment, None]
+    # print(f'result: {result}')
 
     # push the session result to the session table in the ASSESS Database
     push_result = db.push_session_data(DATABASE_DIR, result)
@@ -208,15 +207,20 @@ def main():
 
     while True:
         event, values = window.read() #comment off to test
+        # print(f'event = {event}')
 
 # -----------------------------------------------------------------------------------
 # # ------------------------------------ debug---------------------------------------
 # -----------------------------------------------------------------------------------
         # event = 'Submit'
-        # values = {'-PERSON1-': 'KC', '-PERSON2-': '', '-GANTRY-': '4', '-GANTRY_ANGLE-': '0', '-PRO_EN_1-': '70', '-BMP_LOC_1-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/GA0 only (usually 4000 data)/2022_07_13_KC/run01_align_with_laser/2022_0713_0001/00000001.bmp', 'Browse': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/GA0 only (usually 4000 data)/2022_07_13_KC/run01_align_with_laser/2022_0713_0001/00000001.bmp', '-PRO_EN_2-': '100', '-BMP_LOC_2-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/GA0 only (usually 4000 data)/2022_07_13_KC/run01_align_with_laser/2022_0713_0002/00000001.bmp', 'Browse0': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/GA0 only (usually 4000 data)/2022_07_13_KC/run01_align_with_laser/2022_0713_0002/00000001.bmp', '-PRO_EN_3-': '150', '-BMP_LOC_3-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/GA0 only (usually 4000 data)/2022_07_13_KC/run01_align_with_laser/2022_0713_0003/00000001.bmp', 'Browse1': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/GA0 only (usually 4000 data)/2022_07_13_KC/run01_align_with_laser/2022_0713_0003/00000001.bmp', '-PRO_EN_4-': '200', '-BMP_LOC_4-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/GA0 only (usually 4000 data)/2022_07_13_KC/run01_align_with_laser/2022_0713_0004/00000001.bmp', 'Browse2': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/GA0 only (usually 4000 data)/2022_07_13_KC/run01_align_with_laser/2022_0713_0004/00000001.bmp', '-PRO_EN_5-': '240', '-BMP_LOC_5-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/GA0 only (usually 4000 data)/2022_07_13_KC/run01_align_with_laser/2022_0713_0005/00000001.bmp', 'Browse3': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 4/GA0 only (usually 4000 data)/2022_07_13_KC/run01_align_with_laser/2022_0713_0005/00000001.bmp', '-COMMENT-': ''}
+        # values = {'-PERSON1-': 'AGr', '-PERSON2-': '', '-GANTRY-': '4', '-GANTRY_ANGLE-': '0', '-PRO_EN_1-': '70', '-BMP_LOC_1-': 'C:/Users/KAWCHUNG/Desktop/Spot grids with holder and plan/2022_0525_0001/00000001.bmp', 'Browse': 'C:/Users/KAWCHUNG/Desktop/Spot grids with holder and plan/2022_0525_0001/00000001.bmp', '-PRO_EN_2-': '100', '-BMP_LOC_2-': 'C:/Users/KAWCHUNG/Desktop/Spot grids with holder and plan/2022_0525_0002/00000001.bmp', 'Browse0': 'C:/Users/KAWCHUNG/Desktop/Spot grids with holder and plan/2022_0525_0002/00000001.bmp', '-PRO_EN_3-': '150', '-BMP_LOC_3-': 'C:/Users/KAWCHUNG/Desktop/Spot grids with holder and plan/2022_0525_0003/00000001.bmp', 'Browse1': 'C:/Users/KAWCHUNG/Desktop/Spot grids with holder and plan/2022_0525_0003/00000001.bmp', '-PRO_EN_4-': '200', '-BMP_LOC_4-': 'C:/Users/KAWCHUNG/Desktop/Spot grids with holder and plan/2022_0525_0004/00000001.bmp', 'Browse2': 'C:/Users/KAWCHUNG/Desktop/Spot grids with holder and plan/2022_0525_0004/00000001.bmp', '-PRO_EN_5-': '240', '-BMP_LOC_5-': 'C:/Users/KAWCHUNG/Desktop/Spot grids with holder and plan/2022_0525_0005/00000001.bmp', 'Browse3': 'C:/Users/KAWCHUNG/Desktop/Spot grids with holder and plan/2022_0525_0005/00000001.bmp', '-COMMENT-': ''}
+        # 250
+        # values = {'-PERSON1-': 'KC', '-PERSON2-': '', '-GANTRY-': '3', '-GANTRY_ANGLE-': '0', '-PRO_EN_1-': '70', '-BMP_LOC_1-': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/spot-analysis/miscellaneous/testing_dataset/2022_03_03_zero2_G3/2022_0303_0006_70/00000001.bmp', 'Browse': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/spot-analysis/miscellaneous/testing_dataset/2022_03_03_zero2_G3/2022_0303_0006_70/00000001.bmp', '-PRO_EN_2-': '100', '-BMP_LOC_2-': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/spot-analysis/miscellaneous/testing_dataset/2022_03_03_zero2_G3/2022_0303_0007_100/00000001.bmp', 'Browse0': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/spot-analysis/miscellaneous/testing_dataset/2022_03_03_zero2_G3/2022_0303_0007_100/00000001.bmp', '-PRO_EN_3-': '150', '-BMP_LOC_3-': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/spot-analysis/miscellaneous/testing_dataset/2022_03_03_zero2_G3/2022_0303_0008_150/00000001.bmp', 'Browse1': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/spot-analysis/miscellaneous/testing_dataset/2022_03_03_zero2_G3/2022_0303_0008_150/00000001.bmp', '-PRO_EN_4-': '200', '-BMP_LOC_4-': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/spot-analysis/miscellaneous/testing_dataset/2022_03_03_zero2_G3/2022_0303_0009_200/00000001.bmp', 'Browse2': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/spot-analysis/miscellaneous/testing_dataset/2022_03_03_zero2_G3/2022_0303_0009_200/00000001.bmp', '-PRO_EN_5-': '240', '-BMP_LOC_5-': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/spot-analysis/miscellaneous/testing_dataset/2022_03_03_zero2_G3/2022_0303_0010_240/00000001.bmp', 'Browse3': 'C:/Users/KAWCHUNG/OneDrive - NHS/python_code/spot-analysis/miscellaneous/testing_dataset/2022_03_03_zero2_G3/2022_0303_0010_240/00000001.bmp', '-COMMENT-': ''}
+        # home
+        # values= {'-PERSON1-': 'KC', '-PERSON2-': '', '-GANTRY-': '4', '-GANTRY_ANGLE-': '0', '-PRO_EN_1-': '70', '-BMP_LOC_1-': 'D:/OneDrive - NHS/python_code/spot-analysis/miscellaneous/testing_dataset/2022_03_03_zero2_G3/2022_0303_0006_70/00000001.bmp', 'Browse': 'D:/OneDrive - NHS/python_code/spot-analysis/miscellaneous/testing_dataset/2022_03_03_zero2_G3/2022_0303_0006_70/00000001.bmp', '-PRO_EN_2-': '100', '-BMP_LOC_2-': 'D:/OneDrive - NHS/python_code/spot-analysis/miscellaneous/testing_dataset/2022_03_03_zero2_G3/2022_0303_0007_100/00000001.bmp', 'Browse0': 'D:/OneDrive - NHS/python_code/spot-analysis/miscellaneous/testing_dataset/2022_03_03_zero2_G3/2022_0303_0007_100/00000001.bmp', '-PRO_EN_3-': '150', '-BMP_LOC_3-': 'D:/OneDrive - NHS/python_code/spot-analysis/miscellaneous/testing_dataset/2022_03_03_zero2_G3/2022_0303_0008_150/00000001.bmp', 'Browse1': 'D:/OneDrive - NHS/python_code/spot-analysis/miscellaneous/testing_dataset/2022_03_03_zero2_G3/2022_0303_0008_150/00000001.bmp', '-PRO_EN_4-': '200', '-BMP_LOC_4-': 'D:/OneDrive - NHS/python_code/spot-analysis/miscellaneous/testing_dataset/2022_03_03_zero2_G3/2022_0303_0009_200/00000001.bmp', 'Browse2': 'D:/OneDrive - NHS/python_code/spot-analysis/miscellaneous/testing_dataset/2022_03_03_zero2_G3/2022_0303_0009_200/00000001.bmp', '-PRO_EN_5-': '240', '-BMP_LOC_5-': 'D:/OneDrive - NHS/python_code/spot-analysis/miscellaneous/testing_dataset/2022_03_03_zero2_G3/2022_0303_0010_240/00000001.bmp', 'Browse3': 'D:/OneDrive - NHS/python_code/spot-analysis/miscellaneous/testing_dataset/2022_03_03_zero2_G3/2022_0303_0010_240/00000001.bmp', '-COMMENT-': ''}
 
-        # values = {'-PERSON1-': 'KC', '-PERSON2-': '', '-GANTRY-': '4', '-GANTRY_ANGLE-': '0', '-PRO_EN_1-': '70', '-BMP_LOC_1-': 'D:/OneDrive - NHS/python_code/spot-analysis/miscellaneous/2022_07_13_KC/run01_align_with_laser/2022_0713_0001/00000001.bmp', 'Browse': 'D:/OneDrive - NHS/python_code/spot-analysis/miscellaneous/2022_07_13_KC/run01_align_with_laser/2022_0713_0001/00000001.bmp', '-PRO_EN_2-': '100', '-BMP_LOC_2-': 'D:/OneDrive - NHS/python_code/spot-analysis/miscellaneous/2022_07_13_KC/run01_align_with_laser/2022_0713_0002/00000001.bmp', 'Browse0': 'D:/OneDrive - NHS/python_code/spot-analysis/miscellaneous/2022_07_13_KC/run01_align_with_laser/2022_0713_0002/00000001.bmp', '-PRO_EN_3-': '150', '-BMP_LOC_3-': 'D:/OneDrive - NHS/python_code/spot-analysis/miscellaneous/2022_07_13_KC/run01_align_with_laser/2022_0713_0003/00000001.bmp', 'Browse1': 'D:/OneDrive - NHS/python_code/spot-analysis/miscellaneous/2022_07_13_KC/run01_align_with_laser/2022_0713_0003/00000001.bmp', '-PRO_EN_4-': '200', '-BMP_LOC_4-': 'D:/OneDrive - NHS/python_code/spot-analysis/miscellaneous/2022_07_13_KC/run01_align_with_laser/2022_0713_0004/00000001.bmp', 'Browse2': 'D:/OneDrive - NHS/python_code/spot-analysis/miscellaneous/2022_07_13_KC/run01_align_with_laser/2022_0713_0004/00000001.bmp', '-PRO_EN_5-': '240', '-BMP_LOC_5-': 'D:/OneDrive - NHS/python_code/spot-analysis/miscellaneous/2022_07_13_KC/run01_align_with_laser/2022_0713_0005/00000001.bmp', 'Browse3': 'D:/OneDrive - NHS/python_code/spot-analysis/miscellaneous/2022_07_13_KC/run01_align_with_laser/2022_0713_0005/00000001.bmp', '-COMMENT-': ''}
-        # # print(f'values: {values}')
+        # values = {'-PERSON1-': 'CG', '-PERSON2-': '', '-GANTRY-': '3', '-GANTRY_ANGLE-': '0', '-PRO_EN_1-': '70', '-BMP_LOC_1-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 3/GA0 only (usually 4000 data)/2022_08_29_post_ISM_CG/2022_0829_0001/00000001.bmp', 'Browse': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 3/GA0 only (usually 4000 data)/2022_08_29_post_ISM_CG/2022_0829_0001/00000001.bmp', '-PRO_EN_2-': '100', '-BMP_LOC_2-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 3/GA0 only (usually 4000 data)/2022_08_29_post_ISM_CG/2022_0829_0002/00000001.bmp', 'Browse0': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 3/GA0 only (usually 4000 data)/2022_08_29_post_ISM_CG/2022_0829_0002/00000001.bmp', '-PRO_EN_3-': '150', '-BMP_LOC_3-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 3/GA0 only (usually 4000 data)/2022_08_29_post_ISM_CG/2022_0829_0003/00000001.bmp', 'Browse1': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 3/GA0 only (usually 4000 data)/2022_08_29_post_ISM_CG/2022_0829_0003/00000001.bmp', '-PRO_EN_4-': '200', '-BMP_LOC_4-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 3/GA0 only (usually 4000 data)/2022_08_29_post_ISM_CG/2022_0829_0004/00000001.bmp', 'Browse2': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 3/GA0 only (usually 4000 data)/2022_08_29_post_ISM_CG/2022_0829_0004/00000001.bmp', '-PRO_EN_5-': '240', '-BMP_LOC_5-': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 3/GA0 only (usually 4000 data)/2022_08_29_post_ISM_CG/2022_0829_0005/00000001.bmp', 'Browse3': 'T:/Routine QA/Spot Position/Acquired_Folders/Gantry 3/GA0 only (usually 4000 data)/2022_08_29_post_ISM_CG/2022_0829_0005/00000001.bmp', '-COMMENT-': 'post ISM'}
+        print(f'values: {values}')
 # -----------------------------------------------------------------------------------
 # # ------------------------------------ debug---------------------------------------
 # -----------------------------------------------------------------------------------
@@ -259,9 +263,10 @@ def main():
         kv = list(values.keys())
         vv = list(values.values())
         abmp = [] # all bmp locs
-        rbmp = [] # recorded ebmp
+        rbmp = [] # recorded bmp
         dEn = [] # duplicated energy
         mEn = [] # missing energy
+        aEn = [] # all energies
         nbmp = 0 # total no of bmp entries on gui
 
         # ## if we don't allow empty bmp
@@ -286,6 +291,7 @@ def main():
                     nbmp = nbmp+1
                     me = f'-PRO_EN_{str(nbmp)}-'
                     mb = f'-BMP_LOC_{str(nbmp)}-'
+                    aEn.append(values[me])
                     if values[mb] != "":
                         rbmp.append(nbmp)
                         abmp.append(values[mb])
@@ -294,9 +300,6 @@ def main():
                             for n in en_n:
                                 de = f'-PRO_EN_{str(n)}-'
                                 dEn.append(values[de])
-
-
-
 
 
         # # count the number of bmps from the gui ## CG evaluation
@@ -346,6 +349,28 @@ def main():
         except: # no duplicated bmp locations
             pass
 
+        # ## error catch energy error
+        try:
+            for e in aEn:
+                float(e)
+
+        except ValueError:
+            sg.popup('ERROR MESSAGE!', f' Energy {e} MeV is not a float.')
+            continue
+
+        # ## error catch non-bmp
+        non_bmp = []
+        for f in abmp:
+            if ".bmp" not in f:
+                non_bmp.append(f)
+        try:
+            if non_bmp:
+                sg.popup('ERROR MESSAGE!', f' This is not a bmp file:  {non_bmp}')
+                continue
+        except:
+            pass
+
+
         # ## change directory and save data
         window.close()
 
@@ -355,9 +380,9 @@ def main():
         for i in rbmp:
             str1 = f'-PRO_EN_{str(i)}-'
             str2 = f'-BMP_LOC_{str(i)}-'
-                # print(f'-------------------------')
-                # print(f'>>>energy: {values[str1]}')
-                # print(f'-------------------------')
+            # print(f'-------------------------')
+            # print(f'>>>energy: {values[str1]}')
+            # print(f'-------------------------')
             spotpatterns.update({values[str1]: spm.SpotPattern(values[str2])})
 
         all_data, device= spot_data(values, spotpatterns)
@@ -410,9 +435,9 @@ def main():
         fg.plot_fwhm(df)
 
 
-        rp.make_table(df)
+        rp.make_table(df, aEn)
         comments = values['-COMMENT-']
-        rp.spot_report(df, p1, p2, fpath, gr_path, prof_path, comments)
+        rp.spot_report(df, p1, p2, fpath, gr_path, prof_path, comments, aEn)
 
         # ## Data to proton database
         window2 = make_window_after_reviewing_data(theme)
@@ -420,9 +445,10 @@ def main():
 
         window2.close()
 
-        rp.make_table(df)
+
+        rp.make_table(df, aEn)
         comments = values['-COMMENT-'] + ' ' + values2['-COMMENT2-']
-        rp.spot_report(df, p1, p2, fpath, gr_path, prof_path, comments)
+        rp.spot_report(df, p1, p2, fpath, gr_path, prof_path, comments, aEn)
 
         if event2 == 'Submit':
             # push data to the Database
