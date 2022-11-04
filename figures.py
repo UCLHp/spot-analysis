@@ -14,7 +14,9 @@ pred_xrv3000 = cs.pred_xrv3000
 markers = {240: 'o', 200: '<', 150:'s', 100:'X', 70:'^'}
 colours = {240: '#FFA500', 200: '#FFD700', 150:'#7FFFD4', 100:'#90EE90', 70:'#7BC8F6'}
 
-marker_bank = ['o', 'v', '8', '^', 's', '<', 'p', '>', 'P', 'd', 'X', 'D', 'H']
+marker_bank = ['o', 'v','8', '^', 's', '<', 'p', '>', 'P', 'd', 'X', 'D', 'H', '*', '1'] # not for seaborn plots
+
+locm = {'Right': 'o', 'Centre': '^', 'Left':'X'}
 
 rainbow = ['#653700','#C79FEF',  '#650021', '#000000', '#A52A2A', \
            '#F97306', '#FFA500',  '#FAC205', '#DBB40C', '#9ACD32', \
@@ -167,7 +169,8 @@ def plot_shifts(df, device, tolerance):
     smarkers = {}
     for key in markers.keys():
         smarkers.update({key: markers[key]})
-    sns.scatterplot(data = df, x = x_col, y = y_col, hue = 'spot', style = 'energy', markers = smarkers, ax = ax_main)
+    sns.scatterplot(data = df, x = x_col, y = y_col, style = 'spot', hue = 'energy', ax = ax_main, palette = 'Spectral', edgecolor = 'k', alpha=0.6, style_order = list(pos.keys()))
+    # sns.scatterplot(data = df, x = x_col, y = y_col, style = 'spot', hue = 'energy', markers = smarkers, ax = ax_main)
     ax_main.legend(loc='upper left', bbox_to_anchor = (-0.1, -0.1) , ncol=4)
 
 
@@ -342,7 +345,7 @@ def plot_shifts_by_pos(df, device, tolerance):
     smarkers = {}
     for key in markers.keys():
         smarkers.update({key: markers[key]})
-    sns.scatterplot(data = df, x = x_col, y = y_col, hue = 'spot', ax = ax_main)
+    sns.scatterplot(data = df, x = x_col, y = y_col, hue = 'spot', ax = ax_main, hue_order = list(pos.keys()))
     # sns.scatterplot(data = df, x = x_col, y = y_col, hue = 'energy', style = 'energy', markers = smarkers, ax = ax_main)
     ax_main.legend(loc='upper left', bbox_to_anchor = (-0.1, -0.1) , ncol=4)
 
@@ -370,7 +373,8 @@ def plot_shifts_by_pos(df, device, tolerance):
     return fig
 
 def plot_distribution(df):
-    ''' Plot the distribution of the gradient ratio with a stripplot and volinplot'''
+    ''' Plot the distribution of the gradient ratio with a stripplot and volinplot
+    matplotlib.violinplot(): https://matplotlib.org/stable/gallery/statistics/customized_violin.html'''
 
     title_gr = "gr_distribution"
     title_fwhm = "fwhm_distribution"
@@ -380,29 +384,57 @@ def plot_distribution(df):
     tdf = df[item_list]
     ndf = df.melt(id_vars = item_list[0:2], value_vars = item_list[2:], var_name = 'profile_gr', value_name = 'gradient_ratio') # variable  = hor_gr... tlbr_gr || value = all values from variables
 
+    ndf = ndf.sort_values(by = ['energy']) # give the energy order 70 MeV ... 240 MeV
+    print(f'ndf: {ndf.head(10)}')
+    # create random energies around the Energy
+    all_en = ndf.energy.tolist()
+    en = list(pd.unique(all_en))
+    pos = list(pd.unique(ndf.spot))
+    print(f'en: {en}')
+
+    # for matplotlib
+    ren = [] # randomised x data points // for seaborn scatterplot
+    y_vals = {} # gradient_ratio group by energy // for matplotlib.violin
+
+    for e in en:
+        cnt = all_en.count(e)
+        x_vp = np.random.normal(en.index(e) +1, 0.08, size = cnt) # '+1' because the index of a list starts from 0
+        ren.extend(x_vp)
+
+        edf = ndf[ndf.energy == e]
+        y = edf.gradient_ratio.tolist()
+        y_vals.update({e:y})
+
+    ndf['x_energies'] = ren
 
     fig, ax = plt.subplots(figsize = (16,9))
-
-    # grid = plt.GridSpec(2, 2, width_ratios = (8,2), height_ratios = (5,5), hspace = 0.4, wspace = 0.4)
-    # ax_pos = plt.subplot(grid[0, 0])
     grid = plt.GridSpec(2, 2, width_ratios = (5,5), height_ratios = (8,2), hspace = 0.4, wspace = 0.4)
     ax_pos = plt.subplot(grid[0, 0])
-    # ax_pos_leg = plt.subplot(grid[0, 1])
-
 
     # by position
-    sns.violinplot(x = 'energy', y = 'gradient_ratio', data = ndf, inner =None, color = '0.8', ax = ax_pos)
-    sns.stripplot(x = 'energy', y = 'gradient_ratio', data = ndf, hue = 'spot', linewidth =1, palette = 'Spectral',  ax = ax_pos)
-    # ax_pos.legend(bbox_to_anchor = (1, 1.0))
+    # sns.stripplot(x = 'energy', y = 'gradient_ratio', data = ndf, hue = 'spot', linewidth =1,  ax = ax_pos)
+    # # sns.scatterplot(x = 'x_energies', y = 'gradient_ratio', data = ndf, hue = 'spot' ,style = 'spot', style_order = pos, linewidth =1, palette = 'Spectral',  ax = ax_pos, edgecolor = 'k', alpha=0.6)
+    # sns.violinplot(x = 'energy', y = 'gradient_ratio', data = ndf, inner =None, color = '0.8', ax = ax_pos, alpha = 0.2)
+
+    vp = ax_pos.violinplot(list(y_vals.values()), widths = 0.7, showextrema = False)
+    sns.scatterplot(x = 'x_energies', y = 'gradient_ratio', data = ndf, hue = 'spot' ,style = 'spot', style_order = pos, linewidth =1, palette = 'Spectral',  ax = ax_pos, edgecolor = 'k', alpha=0.7)
+
+    # set violinplot properties
+    for pc in vp['bodies']:
+        pc.set_facecolor('#808080')
+        pc.set_edgecolor('black')
+
+    # to change the x-label of matplotlib.violine
+    ax_pos.set_xticks([i for i in range(1, len(en)+1)])
+    ax_pos.set_xticklabels([str(e) for e in en])
+
     ax_pos.legend(loc='upper left', bbox_to_anchor = (0.001, -0.1), ncol = 3)
     ax_pos.set_xlabel('Energy (MeV)')
     ax_pos.set_ylabel('Gradient ratio (a.u.)')
-    # plt.tight_layout()
 
     # by profile
-    # ax_pf = plt.subplot(grid[1, 0])
     ax_pf = plt.subplot(grid[0, 1])
-    sns.violinplot(x = 'energy', y = 'gradient_ratio', data = ndf, inner =None, color = '0.8', ax = ax_pf)
+    sns.violinplot(x = 'energy', y = 'gradient_ratio', data = ndf, inner =None, color = '0.8', ax = ax_pf, cut =0.00)
     sns.stripplot(x = 'energy', y = 'gradient_ratio', data = ndf, hue = 'profile_gr', linewidth =1,  ax = ax_pf)
     # ax_pf.legend(loc='lower left', bbox_to_anchor = (1.005, 0.001))
     ax_pf.legend(loc='upper left', bbox_to_anchor = (0.001, -0.1))
@@ -413,12 +445,10 @@ def plot_distribution(df):
     fig.savefig(title_gr)
     plt.close(fig)
 
-
     # full-width half max distribution
     item_list = ['energy', 'spot',  'hor_fwhm', 'vert_fwhm', 'bltr_fwhm', 'tlbr_fwhm']
     tdf = df[item_list]
     ndf = df.melt(id_vars = item_list[0:2], value_vars = item_list[2:], var_name = 'profile_fwhm', value_name = 'fwhm') # variable  = hor_gr... tlbr_gr || value = all values from variables
-
 
     fig, ax = plt.subplots(figsize = (16,9))
 
@@ -432,7 +462,7 @@ def plot_distribution(df):
     sns.stripplot(x = 'energy', y = 'fwhm', data = ndf, hue = 'spot', linewidth =1, palette = 'Spectral', ax = ax_pos)
     ax_pos.legend(loc='upper left', bbox_to_anchor = (0.001, -0.1), ncol = 3)
     ax_pos.set_xlabel('Energy (MeV)')
-    ax_pos.set_ylabel('FWHM (a.u.)')
+    ax_pos.set_ylabel('FWHM (mm)')
     # plt.tight_layout()
 
     # by profile
@@ -441,7 +471,7 @@ def plot_distribution(df):
     sns.stripplot(x = 'energy', y = 'fwhm', data = ndf, hue = 'profile_fwhm', linewidth =1,  ax = ax_pf)
     ax_pf.legend(loc='upper left', bbox_to_anchor = (0.005, -0.1))
     ax_pf.set_xlabel('Energy (MeV)')
-    ax_pf.set_ylabel('FWHM (a.u.)')
+    ax_pf.set_ylabel('FWHM (mm)')
 
     # plt.show()
     fig.savefig(title_fwhm)
