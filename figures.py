@@ -383,14 +383,12 @@ def plot_distribution(df):
     item_list = ['energy', 'spot',  'hor_gr', 'vert_gr', 'bltr_gr', 'tlbr_gr']
     tdf = df[item_list]
     ndf = df.melt(id_vars = item_list[0:2], value_vars = item_list[2:], var_name = 'profile_gr', value_name = 'gradient_ratio') # variable  = hor_gr... tlbr_gr || value = all values from variables
-
     ndf = ndf.sort_values(by = ['energy']) # give the energy order 70 MeV ... 240 MeV
-    print(f'ndf: {ndf.head(10)}')
+
     # create random energies around the Energy
     all_en = ndf.energy.tolist()
     en = list(pd.unique(all_en))
     pos = list(pd.unique(ndf.spot))
-    print(f'en: {en}')
 
     # for matplotlib
     ren = [] # randomised x data points // for seaborn scatterplot

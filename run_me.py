@@ -108,8 +108,10 @@ def session_result(gui_values, values2,  spotpatterns):
     gantry_angle = gui_values['-GANTRY_ANGLE-']
     comment = gui_values['-COMMENT-'] + ' ' + values2['-COMMENT2-']
 
-    # result = [adate, machine_name, device, gantry_angle, operator1, operator2, comment, None]
-    result = [adate, machine_name, device, operator1, operator2, comment, None]
+    # SpotPositionSession (8 entries)
+    result = [adate, machine_name, device, gantry_angle, operator1, operator2, comment, None]
+    # SpotPositionSession (7 entries)
+    # result = [adate, machine_name, device, operator1, operator2, comment, None]
     # print(f'result: {result}')
 
     # push the session result to the session table in the ASSESS Database
