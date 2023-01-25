@@ -409,18 +409,33 @@ def plot_distribution(df):
     grid = plt.GridSpec(2, 2, width_ratios = (5,5), height_ratios = (8,2), hspace = 0.4, wspace = 0.4)
     ax_pos = plt.subplot(grid[0, 0])
 
+    #for boxplot
+    medianprops = dict(color = '#929591', linestyle = '-')
+    meanprops = dict(color = '#929591', linestyle = ':', )
+    whiskerprops = dict(color = '#C0C0C0', linestyle='-' )
+
+
     # by position
     # sns.stripplot(x = 'energy', y = 'gradient_ratio', data = ndf, hue = 'spot', linewidth =1,  ax = ax_pos)
     # # sns.scatterplot(x = 'x_energies', y = 'gradient_ratio', data = ndf, hue = 'spot' ,style = 'spot', style_order = pos, linewidth =1, palette = 'Spectral',  ax = ax_pos, edgecolor = 'k', alpha=0.6)
     # sns.violinplot(x = 'energy', y = 'gradient_ratio', data = ndf, inner =None, color = '0.8', ax = ax_pos, alpha = 0.2)
-
-    vp = ax_pos.violinplot(list(y_vals.values()), widths = 0.7, showextrema = False)
+#
+    # vp = ax_pos.violinplot(list(y_vals.values()), widths = 0.7, showextrema = False)
+    bp = ax_pos.boxplot(list(y_vals.values()), showcaps = False, patch_artist = True, showmeans =True, meanline = True, showfliers = False, medianprops = medianprops, meanprops = meanprops, whiskerprops = whiskerprops)
+    # vp = ax_pos.violinplot(list(y_vals.values()), showextrema = False, points = len(y))
     sns.scatterplot(x = 'x_energies', y = 'gradient_ratio', data = ndf, hue = 'spot' ,style = 'spot', style_order = pos, linewidth =1, palette = 'Spectral',  ax = ax_pos, edgecolor = 'k', alpha=0.7)
 
     # set violinplot properties
-    for pc in vp['bodies']:
-        pc.set_facecolor('#808080')
-        pc.set_edgecolor('black')
+    # for pc in vp['bodies']:
+    #     pc.set_facecolor('#808080')
+    #     pc.set_edgecolor('black')
+
+    # set facecolor/ linecolor of the boxplot
+    for b in bp['boxes']:
+        b.set_alpha(0.3)
+        b.set(facecolor = "#C5C9C7")
+        b.set_edgecolor('#808080')
+        b.set_linewidth(1)
 
     # to change the x-label of matplotlib.violine
     ax_pos.set_xticks([i for i in range(1, len(en)+1)])
@@ -432,9 +447,25 @@ def plot_distribution(df):
 
     # by profile
     ax_pf = plt.subplot(grid[0, 1])
-    sns.violinplot(x = 'energy', y = 'gradient_ratio', data = ndf, inner =None, color = '0.8', ax = ax_pf, cut =0.00)
-    sns.stripplot(x = 'energy', y = 'gradient_ratio', data = ndf, hue = 'profile_gr', linewidth =1,  ax = ax_pf)
+
+    bp1 = ax_pf.boxplot(list(y_vals.values()), showcaps = False, patch_artist = True, showmeans =True, meanline = True, showfliers = False, medianprops = medianprops, meanprops = meanprops, whiskerprops = whiskerprops)
+    # sns.violinplot(x = 'energy', y = 'gradient_ratio', data = ndf, inner =None, color = '0.8', ax = ax_pf)
+    # sns.violinplot(x = 'energy', y = 'gradient_ratio', data = ndf, inner =None, color = '0.8', ax = ax_pf, cut =0.00)
+    sns.scatterplot(x = 'x_energies', y = 'gradient_ratio', data = ndf, hue = 'profile_gr' ,style = 'profile_gr',  linewidth =1, palette = 'Spectral',  ax = ax_pf, edgecolor = 'k', alpha=0.7)
+    # sns.stripplot(x = 'energy', y = 'gradient_ratio', data = ndf, hue = 'profile_gr', linewidth =1,  ax = ax_pf)
     # ax_pf.legend(loc='lower left', bbox_to_anchor = (1.005, 0.001))
+
+    # set facecolor/ linecolor of the boxplot
+    for b in bp1['boxes']:
+        b.set_alpha(0.3)
+        b.set(facecolor = "#C5C9C7")
+        b.set_edgecolor('#808080')
+        b.set_linewidth(1)
+
+    # to change the x-label of matplotlib.violine
+    ax_pf.set_xticks([i for i in range(1, len(en)+1)])
+    ax_pf.set_xticklabels([str(e) for e in en])
+
     ax_pf.legend(loc='upper left', bbox_to_anchor = (0.001, -0.1))
     ax_pf.set_xlabel('Energy (MeV)')
     ax_pf.set_ylabel('Gradient ratio (a.u.)')

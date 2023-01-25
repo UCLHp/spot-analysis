@@ -69,8 +69,8 @@ def calc_shifts(df, device):
         ys_abs.append(y_abs)
 
         # relative
-        x_rel = df.iloc[i, 6] - cx - pos[p][0]
-        y_rel = df.iloc[i, 7] - cy - pos[p][1]
+        x_rel = df.iloc[i, 6]  - pos[p][0] - cx
+        y_rel = df.iloc[i, 7]  - pos[p][1] - cy
 
         xs_rel.append(x_rel)
         ys_rel.append(y_rel)

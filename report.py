@@ -443,7 +443,7 @@ def spot_report(df, p1, p2, fpath, gr_path, prof_path, comments, aEn):
     story.append(Paragraph('The definition of the gradient ratio per profile.' , sp))
     story.append(Image(gr_path, width = 3*inch,  height = 2.5*inch,   hAlign = 'CENTER' ))
     story.append(Spacer(1, 10))
-    story.append(Paragraph('The scatterplots allow the datapoints to have a small spread in x-axis such that we can better see the distribution.' , sp))
+    story.append(Paragraph('The scatterplots allow the datapoints to have a small spread in x-axis such that we can better see the distribution. The mean value indicates as the grey dotted line and the median is the grey solid line.' , sp))
     story.append(Image(image_gr, width = 8*inch,  height = 5*inch,   hAlign = 'CENTER'))
 
 
