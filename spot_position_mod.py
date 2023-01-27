@@ -87,11 +87,14 @@ class Output:
 
         for i in np.arange(1, 1 + self.no_of_spots):
             row = [full_data.index(x) for x in full_data if x[0] == str(i)][0]
-            self.spots_xy[i] = [full_data[row][3],full_data[row][4]]
-            self.spots_width[i] = full_data[row][19]
-            self.spots_height[i] = full_data[row][23]
-            self.spots_diameter[i] = full_data[row][25] # averaged diameter for every 5 degree
-            self.spots_quality[i] = full_data[row][27]
+            # ---------- for post-ISM 2023-01-25 ----------
+            if full_data[row][1] == 'XRV Beam Data:' and float(full_data[row][27]) > 95 and float(full_data[row][19]) > 5:
+            # ---------- for post-ISM 2023-01-25 ----------
+                self.spots_xy[i] = [full_data[row][3],full_data[row][4]]
+                self.spots_width[i] = full_data[row][19]
+                self.spots_height[i] = full_data[row][23]
+                self.spots_diameter[i] = full_data[row][25] # averaged diameter for every 5 degree
+                self.spots_quality[i] = full_data[row][27]
 
 class Profile:
     # def __init__(self, profile):
