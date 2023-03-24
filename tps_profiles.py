@@ -1,3 +1,6 @@
+import matplotlib
+matplotlib.use('TkAgg')
+
 import os
 from os.path import join, isfile
 import xlsxwriter
@@ -87,7 +90,7 @@ def produce_spot_dict(log_dir, acquiredfoldersdir):
     for index, row in subdf.iterrows():
         folder = row['Folder']
         energy = row['Energy']
-        
+
         # Image file may be acquired as either bmp or tif
         extension = ""
         img_dir = join(acquiredfoldersdir, folder)
@@ -100,9 +103,9 @@ def produce_spot_dict(log_dir, acquiredfoldersdir):
             raise SystemExit
 
         image_name = row['Image'] + extension
-        spotimage = join(img_dir, image_name)       
+        spotimage = join(img_dir, image_name)
         spots[energy] = lm.Spot(spotimage, ga, rs, dist, energy)
-        
+
     return spots, ga, rs, dist
 
 
