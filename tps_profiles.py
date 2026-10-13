@@ -1,11 +1,18 @@
+import traceback
+
 import matplotlib
 matplotlib.use('TkAgg')
 
 import os
+import sys
+import io
+import warnings
 from os.path import join, isfile
 import xlsxwriter
-import easygui as eg
 import logos_module as lm
+import log_generator as lg
+import spot_comparison as sc
+import database as db
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -63,33 +70,19 @@ def produce_spot_dict(log_dir, acquiredfoldersdir):
     we then return the required profiles in excel for review
     '''
 
-    spot_dataset = lm.create_spot_dataset(log_dir, acquiredfoldersdir)
+    spot_dataset = lm.create_spot_dataset(log_dir, acquiredfoldersdir) # create a dataframe from the log to lookup files
+    print(f"Dataframe created from the log ({len(spot_dataset)} rows).")  # code status message
 
-    ga_list = spot_dataset.GA.unique()
-    if len(ga_list) == 1:
-        ga = ga_list[0]
-    else:
-        ga = eg.choicebox("Select Gantry Angle for fit analysis", "GA", ga_list)
-    ga_subdf = spot_dataset.loc[spot_dataset['GA'] == int(ga)]
-
-    rs_list = ga_subdf.RS.unique()
-    if len(rs_list) == 1:
-        rs = rs_list[0]
-    else:
-        rs = eg.choicebox("Select Range Shifter", "RS", rs_list)
-    rs_subdf = ga_subdf.loc[ga_subdf['RS'] == int(rs)]
-
-    dist_list = rs_subdf.Distance.unique()
-    if len(dist_list) == 1:
-        dist = dist_list[0]
-    else:
-        dist = eg.choicebox("Select Distance", "Distance from Iso", dist_list)
-    subdf = rs_subdf.loc[rs_subdf['Distance'] == int(float(dist))]
-
-    spots = {}
-    for index, row in subdf.iterrows():
+    # creating a dict for loop
+    print("Creating data dictionary......")  # code status message
+    spots = {} # key:(GA, RS, distance, energy)
+    for index, row in spot_dataset.iterrows():
+        # dataframe info
         folder = row['Folder']
         energy = row['Energy']
+        ga = row['GA']
+        rs = row['RS']
+        dist = row['Distance']
 
         # Image file may be acquired as either bmp or tif
         extension = ""
@@ -101,24 +94,33 @@ def produce_spot_dict(log_dir, acquiredfoldersdir):
         else:
             print("ERROR: No tif or bmp file found for {}".format(join(img_dir, row['Image'])) )
             raise SystemExit
-
         image_name = row['Image'] + extension
         spotimage = join(img_dir, image_name)
-        spots[energy] = lm.Spot(spotimage, ga, rs, dist, energy)
 
-    return spots, ga, rs, dist
+        # filling the dict
+        spots[ga, rs, dist, energy] = lm.Spot(spotimage, ga, rs, dist, energy)
 
-
-
+    return spots
 
 # workbook = xlsxwriter.Workbook(join(save_dir, 'TPS_Profiles.xlsx'), {'nan_inf_to_errors': True})
+
+def log10_with_zero(list):
+    '''Function that leaves zero as zero and computes log10 otherwise'''
+    log10_list = []
+    for i in list:
+        if i == 0:
+            log10_list.append(0)
+        else:
+            log10_list.append(np.log10(i))
+
+    return log10_list
 
 def plot_fits(spots, ga, rs, dist):
     '''Create plots to review spot profiles'''
 
-    save_dir = eg.diropenbox(title='Please Select Save Location')
-    # Create empty excel file to write results to, with ability to write errors as 0
-    savename = f'Fits_G{ga}_RS{rs}_Dist{dist}.xlsx'
+    save_dir = save_path # save the fitting excel results to the Results folder
+    # Create empty Excel file to write results to, with ability to write errors as 0
+    savename = f'Fits_GA{ga}_RS{rs}_Dist{dist}.xlsx'
     workbook = xlsxwriter.Workbook(join(save_dir, savename), {'nan_inf_to_errors': True})
     # Summary worksheet to contain parameters for all energies
     summary = workbook.add_worksheet('Summary')
@@ -133,8 +135,6 @@ def plot_fits(spots, ga, rs, dist):
     os.mkdir(temp_dir)
 
     for key in sorted(spots):
-        print(f"Fitting profiles for {key}MeV Image")
-
         # Write key and parameter values to summary sheet
         summary.write(f'B{counter+4}', key)
         summary.write_row(f'C{counter+4}', list(spots[key].singlefit.parameters) + list(spots[key].doublefit.parameters))
@@ -173,10 +173,10 @@ def plot_fits(spots, ga, rs, dist):
         worksheet.write_column('I9', [item[spots[key].cropspotcentre[0]] for item in spots[key].doublefitarray])
 
         # Writing log values for log plots
-        worksheet.write_column('J9', np.log10(spots[key].adjustedcropprofiles[1]))
+        worksheet.write_column('J9', log10_with_zero(spots[key].adjustedcropprofiles[1])) # contains zeros
         worksheet.write_column('K9', np.log10(spots[key].singlefitarray[spots[key].cropspotcentre[1]]))
         worksheet.write_column('L9', np.log10(spots[key].doublefitarray[spots[key].cropspotcentre[1]]))
-        worksheet.write_column('M9', np.log10(spots[key].adjustedcropprofiles[3]))
+        worksheet.write_column('M9', log10_with_zero(spots[key].adjustedcropprofiles[3])) # contains zeros
         worksheet.write_column('N9', [np.log10(item[spots[key].cropspotcentre[0]]) for item in spots[key].singlefitarray])
         worksheet.write_column('O9', [np.log10(item[spots[key].cropspotcentre[0]]) for item in spots[key].doublefitarray])
 
@@ -204,23 +204,106 @@ def plot_fits(spots, ga, rs, dist):
         os.remove(temp_dir+'\\'+file)
     os.rmdir(temp_dir)
 
-# log_dir = "C:\\Users\\cgillies.UCLH\\Desktop\\LOGOS_Analysis\\Profiles_File_Key.xlsx"
-log_dir = eg.fileopenbox('Select image acquisition log')
-if not log_dir:
-    print('No log selected, code will terminate')
-    input('Press enter to close window')
-    raise SystemExit
+class CapturePrints: # class to capture all print messages
+    def __init__(self):
+        self.buffer = io.StringIO() # text buffer to store all print messages
+        self.stdout = sys.stdout  # keep console
 
-# acquiredfoldersdir = "C:\\Users\\cgillies.UCLH\\Desktop\\LOGOS_Analysis"
-acquiredfoldersdir = eg.diropenbox('Select directory containing all acquired LOGOS folders')
-if not acquiredfoldersdir:
-    print('No acquisition directory selected, code will terminate')
-    input('Press enter to close window')
-    raise SystemExit
+    def write(self, message):
+        self.stdout.write(message)  # show in console immediately
+        self.buffer.write(message)  # save to buffer
 
-spots, ga, rs, dist = produce_spot_dict(log_dir, acquiredfoldersdir)
+    def flush(self): # ensure console and buffer flush properly
+        self.stdout.flush()
+        self.buffer.flush()
 
-for key in spots:
-    spots[key].create_fits()
+    def getvalue(self):
+        return self.buffer.getvalue() # return everything as a single string
 
-plot_fits(spots, ga, rs, dist)
+####################
+# Running the code #
+####################
+# initiating code message capture
+capture = CapturePrints()
+initial_capture = sys.stdout
+
+try:
+    sys.stdout = capture # start capturing all printed messages
+
+    #___Selecting the acquisition folder___#
+    import platform
+    print("Launching GUI......") # code status message
+    print("")
+    acquiredfoldersdir, gantry, Op1, Op2 = lg.file_gui() # GUI to select the Logos data folders + create Results folder
+    col_no, folders, image, GA, RS, dist, eng, save_path, CamOrient = lg.info_gui(acquiredfoldersdir) # GUI to provide acquisition info for each folder
+
+    print(f"[{gantry} selected]") # code status message
+    print("")
+
+    #___Creating the acquisition log___#
+    log_dir = lg.create_log(col_no,folders,image,GA,RS,dist,eng,save_path) # creating the acquisition log
+    print(f"Acquisition log created ({len(col_no)} rows).") # code status message
+
+    #___Creating a data dict___#
+    spots_dict = produce_spot_dict(log_dir, acquiredfoldersdir) # create spots dict for fitting {GA, RS, distance, energy}; Dataframe status message is within the function
+    print("Data dictionary created.") # code status message
+
+    grouped = {} # grouping the spots into sets (i.e. what GA, RS, distance)
+    for key, spot in spots_dict.items():
+        set_info = key[:3] # info for the set
+        energy = key[3] # energy of spot
+
+        if set_info not in grouped:# creating a new nestted dict for a new set of spots
+            grouped[set_info] = {}
+
+        grouped[set_info][energy] = spot # filling the spots with energy as the key in the nested dict
+    print("Data dictionary grouped into sets.") # code status message
+    print("")
+
+    #___Fitting for each set of data___#
+    print("____________Fitting spots____________") # code status message
+    warnings.filterwarnings( # warning message that doesn't affect the fitting; will ignore the message to avoid confusion
+        "ignore",
+        message="Values in x were outside bounds during a minimize step, clipping to bounds",
+        category=RuntimeWarning
+    )
+
+    for key, set in grouped.items():
+        # Set labels
+        ga = key[0]
+        rs = key[1]
+        dist = key[2]
+        print(f"Fitting for GA{ga}, RS{rs}, Dist{dist}......") # code status message
+        for energy, bmp in set.items():
+            set[energy].create_fits()
+
+        print("Creating Excel results......") # code status message
+        plot_fits(set, ga, rs, dist)
+        print("Results created.") # code status message
+        print("")
+
+    #___Plotting comparison graphs___#
+    print("____________Plotting comparison graphs____________") # code status message
+    sc.spot_comparison(gantry,folders,save_path)
+
+    #___Writing to DB__#
+    print("____________Pushing data to DB____________")
+    print("Connecting to the Database......")
+    db_write, path, comments = db.test_db_connection()
+
+    if db_write == 'Yes':
+        db.write_to_db(acquiredfoldersdir, gantry, CamOrient, Op1, Op2, comments)
+    else:
+        pass
+
+    #___END___#
+    input("Press Enter to save all code messages!")
+
+except Exception:
+    traceback.print_exc(file=capture) # capture printed messages till error + error messages
+
+finally:
+    # end capture
+    sys.stdout = capture.stdout
+    with open(save_path + "/CodeLog.txt", "w") as f: # save everything in a .txt
+        f.write(capture.getvalue())
