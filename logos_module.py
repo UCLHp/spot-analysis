@@ -281,13 +281,15 @@ class Spot:
         singl_gaus_mod = models.Gaussian2D(amplitude=1,
                                            x_mean=0,
                                            y_mean=0,
-                                           bounds={'amplitude': (0.9, 1),
-                                                   'theta': (0, 0)}
+                                           theta=0,
+                                           bounds={'amplitude': (0.9, 1)}
                                            )
+        singl_gaus_mod.theta.fixed = True #set theta to zero (needed for astropy v6.1.7 vs v4.3.1)
 
         doubl_gaus_mod = doubl_gaus(amplitude=0.8,
                                     x_mean=0,
                                     y_mean=0,
+                                    theta=0,
                                     sigma_x1=1,
                                     sigma_y1=1,
                                     sigma_x2=20,
@@ -296,10 +298,10 @@ class Spot:
                                             'sigma_x1': (1E-9, 100),
                                             'sigma_y1': (1E-9, 100),
                                             'sigma_x2': (1, 100),
-                                            'sigma_y2': (1, 100),
-                                            'theta': (0, 0)
+                                            'sigma_y2': (1, 100)
                                             }
                                     )
+        doubl_gaus_mod.theta.fixed = True  #set theta to zero (needed for astropy v6.1.7 vs v4.3.1)
 
         xx = np.arange(0, len(self.cropspot[0]))
         yy = np.arange(0, len(self.cropspot))
@@ -310,9 +312,7 @@ class Spot:
         x, y = np.meshgrid(xx, yy)
 
         normarray = np.true_divide(self.cropspot, maxpix)
-        print(f'Fitting Single Gaussian for {self.energy}')
         p1 = fit_p(singl_gaus_mod, x, y, normarray, verblevel=0)
-        print(f'Fitting Double Gaussian for {self.energy}')
         p2 = fit_p(doubl_gaus_mod, x, y, normarray, verblevel=0)
 
         self.normcropspot = normarray
@@ -342,7 +342,6 @@ def create_spot_dataset(acquisitionlog, acquiredfoldersdir):
     _spot_dataset[0].extend(['Width', 'RWidth', '2DWidth'])
 
     for index, row in spot_dataset.iterrows():
-        print(f'Row {index+1} of {len(spot_dataset)}')
         image_folder = row['Folder']
         image_name = row['Image'] + '.bmp'
 
